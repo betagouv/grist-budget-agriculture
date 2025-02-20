@@ -31,6 +31,7 @@ def webhook():
     message = f"""\
 Subject: Notif GRIST
 To: {receiver_email}
+
 {json.dumps(input_data, indent=2)}"""
 
     context = ssl.create_default_context()
