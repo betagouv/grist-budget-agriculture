@@ -1,0 +1,5 @@
+Flask
+gunicorn
+pre-commit
+python-dotenv
+ruff
