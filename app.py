@@ -3,6 +3,7 @@ from flask import Flask, jsonify, request
 import json
 import os
 
+import access
 import send_email
 
 load_dotenv()
@@ -23,3 +24,9 @@ def webhook():
     input_data = request.get_json()
     send_email.send("Notif GRIST", json.dumps(input_data, indent=2))
     return jsonify({"result": "POST OK"})
+
+
+@application.route(f"{webhook_route}/personnes", methods=["POST"])
+def personne_webhook():
+    access.update()
+    return jsonify({"result": "OK"})

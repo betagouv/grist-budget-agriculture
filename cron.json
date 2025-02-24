@@ -1,0 +1,8 @@
+{
+  "jobs": [
+    {
+      "command": "5 4 * * * python cli.py",
+      "size": "S"
+    }
+  ]
+}
