@@ -14,16 +14,21 @@ receiver_email = os.environ["APP_EMAIL"]
 password = os.environ["SMTP_PASSWORD"]
 
 
-def send(subjet, body):
-    msg = MIMEMultipart("alternative")
-    msg["Subject"] = subjet
-    msg["From"] = sender_email
-    msg["To"] = receiver_email
-    part1 = MIMEText(body, "plain", "utf-8")
-    msg.attach(part1)
+def send_message(msg):
+    msg["From"] = f"Equipe Budget Ruche Numerique <{sender_email}>"
 
     context = ssl.create_default_context()
     with smtplib.SMTP(smtp_server, port) as server:
         server.starttls(context=context)
         server.login(sender_email, password)
         server.send_message(msg)
+
+
+def send(subjet, body):
+    msg = MIMEMultipart("alternative")
+    msg["Subject"] = subjet
+    msg["To"] = receiver_email
+    part1 = MIMEText(body, "plain", "utf-8")
+    msg.attach(part1)
+
+    send_message(msg)

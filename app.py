@@ -4,7 +4,9 @@ import json
 import os
 
 import access
+import notifications
 import send_email
+
 
 load_dotenv()
 application = Flask(__name__)
@@ -30,12 +32,18 @@ def webhook(type, action):
         return jsonify({"result": f"GET {webhook_route}/{type}/{action} OK"})
 
     input_data = request.get_json()
-    send_email.send(
-        "Notif GRIST",
-        json.dumps(
-            {"type": type, "action": action, "input_data": input_data}, indent=2
-        ),
-    )
+
+    if type == "notifications":
+        for n in input_data:
+            msg = notifications.build_message(n)
+            send_email.send_message(msg)
+    else:
+        send_email.send(
+            "Notif GRIST",
+            json.dumps(
+                {"type": type, "action": action, "input_data": input_data}, indent=2
+            ),
+        )
     return jsonify({"result": "POST OK"})
 
 
