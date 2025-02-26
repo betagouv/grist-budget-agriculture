@@ -16,13 +16,26 @@ def index():
     return jsonify({"result": "Home OK"})
 
 
-@application.route(webhook_route, methods=["GET", "POST"])
-def webhook():
+@application.route(
+    f"{webhook_route}",
+    defaults={"type": "none", "action": "none"},
+    methods=["GET", "POST"],
+)
+@application.route(
+    f"{webhook_route}/<type>", defaults={"action": "none"}, methods=["GET", "POST"]
+)
+@application.route(f"{webhook_route}/<type>/<action>", methods=["GET", "POST"])
+def webhook(type, action):
     if request.method == "GET":
-        return jsonify({"result": f"GET {webhook_route} OK"})
+        return jsonify({"result": f"GET {webhook_route}/{type}/{action} OK"})
 
     input_data = request.get_json()
-    send_email.send("Notif GRIST", json.dumps(input_data, indent=2))
+    send_email.send(
+        "Notif GRIST",
+        json.dumps(
+            {"type": type, "action": action, "input_data": input_data}, indent=2
+        ),
+    )
     return jsonify({"result": "POST OK"})
 
 
