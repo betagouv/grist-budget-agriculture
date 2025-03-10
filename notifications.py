@@ -4,6 +4,14 @@ import json
 from grist import api
 
 
+def build_to_field(tos):
+    toField = ", ".join(
+        [f"{p['fields']['Nom_d_usage']} <{p['fields']['Email']}>" for p in tos]
+    )
+
+    return toField
+
+
 def build_message(notif):
     msg = MIMEMultipart("alternative")
 
@@ -49,9 +57,7 @@ def build_message(notif):
     senderEmail = sender["fields"]["Email"]
 
     tos = [p for p in peopleData if p["id"] in notif["Destinataires"]]
-    toField = ", ".join(
-        [f"{p['fields']['Nom_d_usage']} <{p['fields']['Email']}>" for p in tos]
-    )
+    toField = build_to_field(tos)
 
     msg["To"] = toField
     msg["Cc"] = f"{senderName} <{senderEmail}>"
@@ -61,7 +67,7 @@ def build_message(notif):
         f"""
 Bonjour,
 
-{senderName} vous à attribuer {intro}.
+{senderName} vous a attribué {intro}.
 
 C'est accessible au lien suivant {link}.
 

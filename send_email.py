@@ -28,7 +28,10 @@ def send(subjet, body):
     msg = MIMEMultipart("alternative")
     msg["Subject"] = subjet
     msg["To"] = receiver_email
-    part1 = MIMEText(body, "plain", "utf-8")
+    full_body = "\n\n".join(
+        [body, "Message automatique de github.com/betagouv/notifs-grist-agriculture"]
+    )
+    part1 = MIMEText(full_body, "plain", "utf-8")
     msg.attach(part1)
 
     send_message(msg)
