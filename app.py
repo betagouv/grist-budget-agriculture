@@ -1,9 +1,12 @@
 from dotenv import load_dotenv
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request, send_file
 import json
 import os
+import shutil
+import tempfile
 
 import access
+import generate_pdf
 import notifications
 import send_email
 
@@ -16,6 +19,15 @@ webhook_route = os.environ["SECRET_ROUTE"]
 @application.route("/")
 def index():
     return jsonify({"result": "Home OK"})
+
+
+@application.route("/pdf")
+def pdf():
+    with tempfile.NamedTemporaryFile(suffix=".ott") as a:
+        shutil.copy("files/CACSF.odt", a.name)
+        generate_pdf.run_cmd(a.name, os.path.dirname(a.name))
+        root, _ = os.path.splitext(a.name)
+        return send_file(f"{root}.pdf", download_name="CACSF.pdf", as_attachment=True)
 
 
 @application.route(
