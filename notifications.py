@@ -1,7 +1,16 @@
+import datetime
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 import json
 from grist import api
+import locale
+
+locale.setlocale(locale.LC_MONETARY, "")
+
+
+def to_date(ts):
+    dt = datetime.datetime.fromtimestamp(ts)
+    return dt.date().isoformat()
 
 
 def build_to_field(tos):
@@ -16,20 +25,20 @@ def build_message(notif):
     msg = MIMEMultipart("alternative")
 
     def bcSubject(props):
-        return f"[grist-ruche] BC à suivre {props['NoBDC'] or 'TBD'} d'un montant de {props['Montant_AE']}"
+        return f"[grist-ruche] BC à suivre {props['NoBDC'] or 'TBD'} d'un montant de {locale.currency(props['Montant_AE'])}"
 
     configs = {
         "Bon_de_commande": {
             "table": "Bons_de_commande",
             "notifProp": "Bon_de_commande",
             "subject": bcSubject,
-            "intro": lambda props: f"le bon de commande {props['NoBDC'] or 'TBD'} d'un montant de {props['Montant_AE']}",
+            "intro": lambda props: f"le bon de commande {props['NoBDC'] or 'TBD'} d'un montant de {locale.currency(props['Montant_AE'])}",
         },
         "Service_fait": {
             "table": "Services_Faits",
             "notifProp": "Service_fait",
-            "subject": lambda props: f"[grist-ruche] SF à suivre pour le BC {props['gristHelper_Display2']} en date du {props['Date_du_PV']}",
-            "intro": lambda props: f"le service fait pour le BC {props['gristHelper_Display2']} en date du {props['Date_du_PV']}",
+            "subject": lambda props: f"[grist-ruche] SF à suivre pour le BC {props['gristHelper_Display2']} en date du {to_date(props['Date_du_PV'])}",
+            "intro": lambda props: f"le service fait pour le BC {props['gristHelper_Display2']} en date du {to_date(props['Date_du_PV'])}",
         },
     }
 
