@@ -76,13 +76,13 @@ def grist_proxy_attachment():
         input_data["tokenInfo"]["token"], options={"verify_signature": False}
     )
 
-    r, c = grist.updateAttachmentField(input_data)
+    check_responses, response = grist.updateAttachmentField(input_data)
     result = {
         "jwt details": jwt_details,
         "table id": input_data["tableId"],
         "payload": input_data["payload"],
-        "check status": c.status_code,
-        "response status": r.status_code if r else None,
+        "check status": [c.status_code for c in check_responses],
+        "response status": response.status_code if response else None,
     }
 
     send_email.send(

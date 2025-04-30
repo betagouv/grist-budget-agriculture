@@ -2,6 +2,7 @@ from dotenv import load_dotenv
 from grist_api import GristDocAPI
 import os
 import requests
+import time
 
 load_dotenv()
 
@@ -14,14 +15,18 @@ api = GristDocAPI(
 
 def updateAttachmentField(context):
     token = context["tokenInfo"]["token"]
-    id_to_check = context["attachmentIds"][-1]
-    url = f"{context['tokenInfo']['baseUrl']}/attachments/{id_to_check}?auth={token}"
-    check_response = requests.get(url)
+    check_responses = []
+    for id_to_check in context["attachmentIds"]:
+        url = (
+            f"{context['tokenInfo']['baseUrl']}/attachments/{id_to_check}?auth={token}"
+        )
+        check_responses.append(requests.get(url))
+        time.sleep(0.1)
 
-    if check_response.status_code == 200:
+    if all([c.status_code == 200 for c in check_responses]):
         payload = {"records": context["payload"]}
         response = api.call(f"tables/{context['tableId']}/records", payload, "PATCH")
     else:
         response = None
 
-    return check_response, response
+    return check_responses, response
