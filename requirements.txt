@@ -1,6 +1,8 @@
 Flask
+flask-cors
 grist_api
 gunicorn
 pre-commit
+pyjwt
 python-dotenv
 ruff

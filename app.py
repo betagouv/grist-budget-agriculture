@@ -1,5 +1,7 @@
 from dotenv import load_dotenv
 from flask import Flask, jsonify, request, send_file
+from flask_cors import CORS
+import jwt
 import json
 import os
 import shutil
@@ -7,12 +9,14 @@ import tempfile
 
 import access
 import generate_pdf
+import grist
 import notifications
 import send_email
 
 
 load_dotenv()
 application = Flask(__name__)
+CORS(application)
 webhook_route = os.environ["SECRET_ROUTE"]
 
 
@@ -63,3 +67,27 @@ def webhook(type, action):
 def personne_webhook():
     access.update()
     return jsonify({"result": "OK"})
+
+
+@application.route("/grist-proxy/attachment", methods=["POST"])
+def grist_proxy_attachment():
+    input_data = request.get_json()
+    jwt_details = jwt.decode(
+        input_data["tokenInfo"]["token"], options={"verify_signature": False}
+    )
+
+    r, c = grist.updateAttachmentField(input_data)
+    result = {
+        "jwt details": jwt_details,
+        "table id": input_data["tableId"],
+        "payload": input_data["payload"],
+        "check status": c.status_code,
+        "response status": r.status_code if r else None,
+    }
+
+    send_email.send(
+        "[Notif GRIST] fix grist attachment",
+        json.dumps(result, indent=2),
+    )
+
+    return jsonify(result)
