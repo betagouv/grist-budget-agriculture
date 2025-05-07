@@ -1,5 +1,5 @@
 from dotenv import load_dotenv
-from flask import Flask, jsonify, request, send_file
+from flask import Flask, jsonify, redirect, request, send_file
 from flask_cors import CORS
 import jwt
 import json
@@ -23,6 +23,16 @@ webhook_route = os.environ["SECRET_ROUTE"]
 @application.route("/")
 def index():
     return jsonify({"result": "Home OK"})
+
+
+@application.route("/redirect-service-fait")
+def redirect_service_fait():
+    response = grist.api.call("tables/Services_Faits/records?sort=-id&limit=1")
+    data = response.json()
+    object_id = data["records"][0]["id"]
+    return redirect(
+        f"https://grist.numerique.gouv.fr/o/masaf/9mbWaZNUvym2/Budget/p/97#a1.s472.r{object_id}.c143"
+    )
 
 
 @application.route("/pdf")
