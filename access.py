@@ -1,8 +1,9 @@
 from grist import api
+from pprint import pprint
 import send_email
 
 
-def update():
+def generate_updates():
     accessResponse = api.call("access")
     accesses = accessResponse.json()
 
@@ -10,6 +11,7 @@ def update():
         person["email"]: None
         for person in accesses["users"]
         if (person["access"] or person["parentAccess"]) == "viewers"
+        and person["email"] != "everyone@getgrist.com"
     }
     editorAccesses = [
         person["email"] for person in accesses["users"] if person["access"] != "viewers"
@@ -21,11 +23,15 @@ def update():
     peopleEmails = [p.Email for p in people]
     toRemove = [ea for ea in editorAccesses if ea not in peopleEmails]
 
-    updatesToDo = {
+    return {
         **viewersAccessToRemove,
         **{email: None for email in toRemove},
         **{email: "editors" for email in toAdd},
     }
+
+
+def update():
+    updatesToDo = generate_updates()
     if len(updatesToDo):
         data = {"delta": {"maxInheritedRole": "owners", "users": updatesToDo}}
         api.call("access", data, "PATCH")
@@ -49,3 +55,11 @@ def notify(updatesToDo):
         ]
     )
     send_email.send("[Grist] Mise à jour des droits d'accès", body)
+
+
+def main():
+    pprint(generate_updates())
+
+
+if __name__ == "__main__":
+    main()
