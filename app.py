@@ -18,14 +18,15 @@ load_dotenv()
 application = Flask(__name__)
 CORS(application)
 webhook_route = os.environ["SECRET_ROUTE"]
+subdomain = os.getenv("SUBDOMAIN", "/api")
 
 
-@application.route("/")
+@application.route(f"{subdomain}/")
 def index():
-    return jsonify({"result": "Home OK"})
+    return jsonify({"result": f"Home OK at {subdomain}"})
 
 
-@application.route("/redirect-service-fait")
+@application.route(f"{subdomain}/redirect-service-fait")
 def redirect_service_fait():
     response = grist.api.call("tables/Services_Faits/records?sort=-id&limit=1")
     data = response.json()
@@ -35,7 +36,7 @@ def redirect_service_fait():
     )
 
 
-@application.route("/pdf")
+@application.route(f"{subdomain}/pdf")
 def pdf():
     with tempfile.NamedTemporaryFile(suffix=".ott") as a:
         shutil.copy("files/CACSF.odt", a.name)
@@ -45,12 +46,14 @@ def pdf():
 
 
 @application.route(
-    f"{webhook_route}",
+    f"{subdomain}{webhook_route}",
     defaults={"type": "none", "action": "none"},
     methods=["GET", "POST"],
 )
 @application.route(
-    f"{webhook_route}/<type>", defaults={"action": "none"}, methods=["GET", "POST"]
+    f"{subdomain}{webhook_route}/<type>",
+    defaults={"action": "none"},
+    methods=["GET", "POST"],
 )
 @application.route(f"{webhook_route}/<type>/<action>", methods=["GET", "POST"])
 def webhook(type, action):
@@ -73,13 +76,13 @@ def webhook(type, action):
     return jsonify({"result": "POST OK"})
 
 
-@application.route(f"{webhook_route}/personnes", methods=["POST"])
+@application.route(f"{subdomain}{webhook_route}/personnes", methods=["POST"])
 def personne_webhook():
     access.update()
     return jsonify({"result": "OK"})
 
 
-@application.route("/grist-proxy/attachment", methods=["POST"])
+@application.route(f"{subdomain}/grist-proxy/attachment", methods=["POST"])
 def grist_proxy_attachment():
     input_data = request.get_json()
     jwt_details = jwt.decode(
