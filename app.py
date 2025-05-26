@@ -15,10 +15,31 @@ import send_email
 
 
 load_dotenv()
-application = Flask(__name__)
+application = Flask(__name__, static_folder="out", static_url_path="")
 CORS(application)
 webhook_route = os.environ["SECRET_ROUTE"]
 subdomain = os.getenv("SUBDOMAIN", "/api")
+
+for root, dirs, files in os.walk(application.static_folder):
+    html_files = [f for f in files if f.endswith(".html")]
+    if html_files:
+        clean_root = root[len(application.static_folder) + 1 :]
+        for html_subpath in html_files:
+            html_file_path = os.path.join(clean_root, html_subpath)
+            public_subpath = os.path.splitext(html_file_path)[0]
+
+            public_directory, file_name = os.path.split(html_file_path)
+            if file_name == "index.html":
+                application.add_url_rule(
+                    f"{application.static_url_path}/{public_directory}",
+                    endpoint="static",
+                    defaults={"filename": html_file_path},
+                )
+            application.add_url_rule(
+                f"{application.static_url_path}/{public_subpath}",
+                endpoint="static",
+                defaults={"filename": html_file_path},
+            )
 
 
 @application.route(f"{subdomain}/")
