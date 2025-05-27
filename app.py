@@ -90,13 +90,14 @@ def webhook(type, action):
             send_email.send_message(msg)
     elif type == "scalingo":
         data = {
-            "text": f"""Scalingo
-```json
-{json.dumps(input_data, indent=2)}
-```
-"""
+            "text": "Notification Scalingo",
+            "props": {"card": f"```json\n{json.dumps(input_data, indent=2)}\n```"},
         }
-        requests.post(os.environ["MATTERMOST_WEBHOOK"], data=data)
+        requests.post(
+            os.environ["MATTERMOST_WEBHOOK"],
+            data=json.dumps(data),
+            headers={"Content-Type": "application/json"},
+        )
     else:
         send_email.send(
             "Notif GRIST",
