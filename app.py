@@ -68,16 +68,10 @@ def pdf():
 
 
 @application.route(
-    f"{subdomain}{webhook_route}",
+    f"{subdomain}{webhook_route}/<type>/<action>",
     defaults={"type": "none", "action": "none"},
     methods=["GET", "POST"],
 )
-@application.route(
-    f"{subdomain}{webhook_route}/<type>",
-    defaults={"action": "none"},
-    methods=["GET", "POST"],
-)
-@application.route(f"{webhook_route}/<type>/<action>", methods=["GET", "POST"])
 def webhook(type, action):
     if request.method == "GET":
         return jsonify({"result": f"GET {webhook_route}/{type}/{action} OK"})
