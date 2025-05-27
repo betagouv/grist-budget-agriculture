@@ -9,6 +9,7 @@ import shutil
 import tempfile
 
 import access
+import chorus
 import generate_pdf
 import grist
 import notifications
@@ -139,3 +140,11 @@ def grist_proxy_attachment():
     )
 
     return jsonify(result)
+
+
+@application.route(f"{subdomain}/chorus/inf-bud-53", methods=["POST"])
+def chorus_inf_bud_53():
+    input_data = request.get_json()
+    with tempfile.NamedTemporaryFile() as a:
+        chorus.inf_bud_53(input_data, a)
+        return send_file(a.name, download_name="INF_BUD_53.xlsx")
