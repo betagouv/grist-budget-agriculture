@@ -4,6 +4,7 @@ from flask_cors import CORS
 import jwt
 import json
 import os
+import requests
 import shutil
 import tempfile
 
@@ -87,6 +88,15 @@ def webhook(type, action):
         for n in input_data:
             msg = notifications.build_message(n)
             send_email.send_message(msg)
+    elif type == "scalingo":
+        data = {
+            "text": f"""Scalingo
+```json
+{json.dumps(input_data, indent=2)}
+```
+"""
+        }
+        requests.post(os.environ["MATTERMOST_WEBHOOK"], data=data)
     else:
         send_email.send(
             "Notif GRIST",

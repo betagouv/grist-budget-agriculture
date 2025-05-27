@@ -5,4 +5,5 @@ gunicorn
 pre-commit
 pyjwt
 python-dotenv
+requests
 ruff
