@@ -68,8 +68,17 @@ def pdf():
 
 
 @application.route(
-    f"{subdomain}{webhook_route}/<type>/<action>",
+    f"{subdomain}{webhook_route}",
     defaults={"type": "none", "action": "none"},
+    methods=["GET", "POST"],
+)
+@application.route(
+    f"{subdomain}{webhook_route}/<type>",
+    defaults={"action": "none"},
+    methods=["GET", "POST"],
+)
+@application.route(
+    f"{subdomain}{webhook_route}/<type>/<action>",
     methods=["GET", "POST"],
 )
 def webhook(type, action):
@@ -99,7 +108,7 @@ def webhook(type, action):
                 {"type": type, "action": action, "input_data": input_data}, indent=2
             ),
         )
-    return jsonify({"result": "POST OK"})
+    return jsonify({"result": f"POST {type}/{action} OK"})
 
 
 @application.route(f"{subdomain}{webhook_route}/personnes", methods=["POST"])
