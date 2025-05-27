@@ -35,3 +35,11 @@ def send(subjet, body):
     msg.attach(part1)
 
     send_message(msg)
+
+
+def main():
+    send("TEST", "TEST")
+
+
+if __name__ == "__main__":
+    main()
