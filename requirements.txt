@@ -2,6 +2,7 @@ Flask
 flask-cors
 grist_api
 gunicorn
+pandas
 pre-commit
 pyjwt
 python-dotenv
