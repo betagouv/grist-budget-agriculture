@@ -147,4 +147,4 @@ def chorus_inf_bud_53():
     input_data = request.get_json()
     with tempfile.NamedTemporaryFile() as a:
         chorus.inf_bud_53(input_data, a)
-        return send_file(a.name, download_name="INF_BUD_53.xlsx")
+        return send_file(a.name, download_name=f"INF_BUD_53.{input_data['format']}")
