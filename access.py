@@ -7,18 +7,27 @@ def generate_updates():
     accessResponse = api.call("access")
     accesses = accessResponse.json()
 
+    parentAccesses = [p["email"] for p in accesses["users"] if p["parentAccess"]]
+    updatableAccesses = [p for p in accesses["users"] if not p["parentAccess"]]
+    accessesToCheck = [
+        p for p in updatableAccesses if p["email"] != "everyone@getgrist.com"
+    ]
+
     viewersAccessToRemove = {
         person["email"]: None
-        for person in accesses["users"]
-        if (person["access"] or person["parentAccess"]) == "viewers"
-        and person["email"] != "everyone@getgrist.com"
+        for person in accessesToCheck
+        if person["access"] == "viewers"
     }
     editorAccesses = [
-        person["email"] for person in accesses["users"] if person["access"] != "viewers"
+        person["email"] for person in accessesToCheck if person["access"] != "viewers"
     ]
 
     people = [person for person in api.fetch_table("Personnes") if len(person.Email)]
-    toAdd = [p.Email for p in people if p.Email not in editorAccesses]
+    toAdd = [
+        p.Email
+        for p in people
+        if p.Email not in editorAccesses and p.Email not in parentAccesses
+    ]
 
     peopleEmails = [p.Email for p in people]
     toRemove = [ea for ea in editorAccesses if ea not in peopleEmails]
