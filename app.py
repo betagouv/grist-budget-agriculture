@@ -148,3 +148,11 @@ def chorus_inf_bud_53():
     with tempfile.NamedTemporaryFile() as a:
         chorus.inf_bud_53(input_data, a)
         return send_file(a.name, download_name=f"INF_BUD_53.{input_data['format']}")
+
+
+@application.route(f"{subdomain}/chorus/inf-bud-53/aggregate", methods=["POST"])
+def chorus_inf_bud_53_aggregate():
+    input_data = request.get_json()
+    with tempfile.NamedTemporaryFile() as a:
+        chorus.inf_bud_53_aggregate(input_data, a)
+        return send_file(a.name, download_name=f"INF_BUD_53_a.{input_data['format']}")

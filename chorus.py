@@ -48,10 +48,7 @@ def merge_grist(df, gristDf):
     return df_join
 
 
-def download_infbud_csv(context):
-    token_info = context["tokenInfo"]
-    attachments = context["record"][context["mapping"]["Piece_jointe"]]
-    attachment_id = attachments[0]
+def download_infbud_csv(token_info, attachment_id):
     url = f"{token_info['baseUrl']}/attachments/{attachment_id}/download?auth={token_info['token']}"
     response = requests.get(url)
     with tempfile.NamedTemporaryFile(suffix=".csv") as fd:
@@ -61,29 +58,68 @@ def download_infbud_csv(context):
         return get_chorus_data(fd.name)
 
 
+def build_url(token_info, table_name):
+    return f"{token_info['baseUrl']}/tables/{table_name}/records?auth={token_info['token']}"
+
+
 def fetch_bcs(token_info):
-    url = f"{token_info['baseUrl']}/tables/Bons_de_commande/records?auth={token_info['token']}"
+    url = build_url(token_info, "Bons_de_commande")
     response = requests.get(url)
     grist_data = response.json()
     records = grist_data["records"]
     return pd.DataFrame([r["fields"] for r in records])
 
 
-def inf_bud_53(context, dest):
-    initial_df = download_infbud_csv(context)
-    bcs = fetch_bcs(context["tokenInfo"])
+def limit_df(initial_df, token_info):
+    bcs = fetch_bcs(token_info)
     df = merge_grist(initial_df, bcs)
 
     columns = [*initial_df.columns.values, "NoBDC", "Montant_AE"]
-    res = df[columns].sort_values(["N° EJ", "Type montant", "NoBDC"])
+    return df[columns].sort_values(
+        ["N° EJ", "Exercice comptable", "Type montant", "NoBDC"]
+    )
 
-    if context["format"] == "pickle":
-        res.to_pickle(dest)
+
+def to(ext, result, dest):
+    if ext == "pickle":
+        result.to_pickle(dest)
         dest.seek(os.SEEK_SET, 0)
     else:
         with pd.ExcelWriter(dest, engine="xlsxwriter") as writer:
-            res.to_excel(writer, sheet_name="summary")
+            result.to_excel(writer, sheet_name="summary")
             writer.sheets["summary"].autofit()
+
+
+def inf_bud_53(context, dest):
+    token_info = context["tokenInfo"]
+    attachments = context["record"][context["mapping"]["Piece_jointe"]]
+    attachment_id = attachments[0]
+    initial_df = download_infbud_csv(token_info, attachment_id)
+    result = limit_df(initial_df, token_info)
+    to(context["format"], result, dest)
+
+
+def inf_bud_53_aggregate(context, dest):
+    token_info = context["tokenInfo"]
+    field_name = context["mapping"]["Piece_jointe"]
+
+    url = build_url(token_info, "INF_BUD_53")
+    response = requests.get(url)
+    grist_data = response.json()
+    records = grist_data["records"]
+    restits = pd.DataFrame([r["fields"] for r in records])
+    restits.sort_values(["Cree_a"], inplace=True)
+    vals = restits.groupby("Annee").last()
+
+    attachment_ids = [attachment_ids[1] for attachment_ids in vals[field_name]]
+
+    dfs = [
+        download_infbud_csv(token_info, attachment_id)
+        for attachment_id in attachment_ids
+    ]
+    initial_df = pd.concat(dfs)
+    result = limit_df(initial_df, token_info)
+    to(context["format"], result, dest)
 
 
 # « Montants engagé » : somme des montants consommés par l’EJ au statut « commande » au niveau du poste de l’EJ. L’indicateur se base sur la date d’impact budgétaire de l’EJ ;
