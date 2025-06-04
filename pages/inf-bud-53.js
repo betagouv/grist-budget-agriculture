@@ -66,14 +66,15 @@ export default function InfBud53() {
       <h1>GO CHORUS</h1>
       <button disabled={doing || !record} onClick={() => onClick("xlsx", record)}>Récupérer l'extraction Chorus filtrée pour les BC de la Ruche</button>
       {!record ? <p>Il faut sélectionner une ligne d'INF_BUG_53.</p> : ""}
+      <button disabled={doing} onClick={() => onAggregateClick("xlsx")}>Récupérer un état global en regroupant les extractions Chorus les plus récentes pour chaque année</button>
       {process.env.NODE_ENV == "development" ? (
           <div>
             <button disabled={doing || !record} onClick={() => onClick("pickle", record)}>Récupérer l'extraction Chorus filtrée pour les BC de la Ruche (PICKLE)</button>
+            <button disabled={doing} onClick={() => onAggregateClick("pickle")}>Récupérer un état global en regroupant les extractions Chorus les plus récentes pour chaque année (PICKLE)</button>
           </div>
         ) : (
           <></>
         )}
-      <button disabled={doing} onClick={() => onAggregateClick("xlsx")}>Récupérer un état global en regroupant les extractions Chorus les plus récentes pour chaque année</button>
     </div>
   );
 }

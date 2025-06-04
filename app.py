@@ -146,7 +146,7 @@ def grist_proxy_attachment():
 def chorus_inf_bud_53():
     input_data = request.get_json()
     with tempfile.NamedTemporaryFile() as a:
-        chorus.inf_bud_53(input_data, a)
+        chorus.inf_bud_53_filter(input_data, a)
         return send_file(a.name, download_name=f"INF_BUD_53.{input_data['format']}")
 
 

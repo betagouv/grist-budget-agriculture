@@ -2,6 +2,7 @@ import os
 import pandas as pd
 import requests
 import tempfile
+import inf_bud_53
 
 
 def get_chorus_data(filepath):
@@ -12,7 +13,7 @@ def get_chorus_data(filepath):
     df.columns = pd.Index(
         [*idx_cols.values[:7], "Type montant", "Exercice comptable", value_field]
     )
-    df["Exercice comptable"] = year_field
+    df["Exercice comptable"] = int(year_field)
     new_vals = df[value_field].apply(
         lambda v: v if pd.isna(v) else float(v.replace(" ", "").replace(",", "."))
     )
@@ -90,7 +91,7 @@ def to(ext, result, dest):
             writer.sheets["summary"].autofit()
 
 
-def inf_bud_53(context, dest):
+def inf_bud_53_filter(context, dest):
     token_info = context["tokenInfo"]
     attachments = context["record"][context["mapping"]["Piece_jointe"]]
     attachment_id = attachments[0]
@@ -119,6 +120,8 @@ def inf_bud_53_aggregate(context, dest):
     ]
     initial_df = pd.concat(dfs)
     result = limit_df(initial_df, token_info)
+    inf_bud_53.add_check_column(result)
+
     to(context["format"], result, dest)
 
 
