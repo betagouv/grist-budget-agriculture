@@ -17,7 +17,7 @@ def comment(e, group, ci):
         return "OK - BC subdivisé"
 
     p_c = group["Type montant"] == "Montant payé"
-    ante_c = group["Exercice comptable"] < annee
+    ante_c = group["Date de base de la DP - date"].dt.year < annee
     pas_avance_c = group["N° poste DP"] != "1"
     payedf = group[p_c * ante_c * pas_avance_c]
 

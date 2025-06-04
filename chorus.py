@@ -35,6 +35,9 @@ def get_chorus_data(filepath):
         .astype("category")
         .cat.reorder_categories(types, ordered=True)
     )
+    df["Date de base de la DP - date"] = pd.to_datetime(
+        df["Date de base de la DP"], errors="coerce", format="%d.%m.%Y"
+    )
 
     res = df[(~agg_rows) * (~df[value_field].isna())]
 
