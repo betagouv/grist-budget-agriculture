@@ -44,10 +44,21 @@ def get_chorus_data(filepath):
     return res
 
 
-def merge_grist(df, gristDf):
-    col = "NoBDC"
+def merge_grist(df, gristBC, gristSF):
+    bccol = "NoBDC"
+    sfcol = "No_SF"
     df_join = df.merge(
-        gristDf[gristDf[col] != ""], left_on="N° EJ", right_on=col, how="right"
+        gristBC[gristBC[bccol] != ""],
+        left_on="N° EJ",
+        right_on=bccol,
+        how="right",
+        suffixes=("_CHORUS", "_BC"),
+    ).merge(
+        gristSF,
+        left_on="N° SF",
+        right_on=sfcol,
+        how="outer",
+        suffixes=("_CHORUS", "_SF"),
     )
     return df_join
 
@@ -66,19 +77,22 @@ def build_url(token_info, table_name):
     return f"{token_info['baseUrl']}/tables/{table_name}/records?auth={token_info['token']}"
 
 
-def fetch_bcs(token_info):
-    url = build_url(token_info, "Bons_de_commande")
+def fetch_grist(token_info, table):
+    url = build_url(token_info, table)
     response = requests.get(url)
     grist_data = response.json()
     records = grist_data["records"]
-    return pd.DataFrame([r["fields"] for r in records])
+    return pd.DataFrame([{"id": r["id"], **r["fields"]} for r in records])
 
 
-def limit_df(initial_df, token_info):
-    bcs = fetch_bcs(token_info)
-    df = merge_grist(initial_df, bcs)
+def build_df(initial_df, token_info):
+    bcs = fetch_grist(token_info, "Bons_de_commande")
+    sfs = fetch_grist(token_info, "Services_Faits")
+    df = merge_grist(initial_df, bcs, sfs)
 
-    columns = [*initial_df.columns.values, "NoBDC", "Montant_AE"]
+    columns = (
+        df.columns
+    )  # [*initial_df.columns.values, "NoBDC", "Montant_AE", "Numero_BC", "Montant_CP"]
     return df[columns].sort_values(
         ["N° EJ", "Exercice comptable", "Type montant", "NoBDC"]
     )
@@ -99,7 +113,9 @@ def inf_bud_53_filter(context, dest):
     attachments = context["record"][context["mapping"]["Piece_jointe"]]
     attachment_id = attachments[0]
     initial_df = download_infbud_csv(token_info, attachment_id)
-    result = limit_df(initial_df, token_info)
+
+    result = build_df(initial_df, token_info)
+
     to(context["format"], result, dest)
 
 
@@ -122,7 +138,7 @@ def inf_bud_53_aggregate(context, dest):
         for attachment_id in attachment_ids
     ]
     initial_df = pd.concat(dfs)
-    result = limit_df(initial_df, token_info)
+    result = build_df(initial_df, token_info)
     inf_bud_53.add_check_column(result)
 
     to(context["format"], result, dest)
