@@ -12,6 +12,7 @@ import access
 import chorus
 import generate_pdf
 import grist
+import inf_bud_53
 import notifications
 import send_email
 
@@ -145,14 +146,27 @@ def grist_proxy_attachment():
 @application.route(f"{subdomain}/chorus/inf-bud-53", methods=["POST"])
 def chorus_inf_bud_53():
     input_data = request.get_json()
-    with tempfile.NamedTemporaryFile() as a:
-        chorus.inf_bud_53_filter(input_data, a)
-        return send_file(a.name, download_name=f"INF_BUD_53.{input_data['format']}")
+    with tempfile.NamedTemporaryFile() as dest:
+        result = chorus.inf_bud_53_filter(input_data)
+
+        file_ext = input_data["format"]
+        chorus.to(file_ext, result, dest)
+        return send_file(dest.name, download_name=f"INF_BUD_53.{file_ext}")
 
 
 @application.route(f"{subdomain}/chorus/inf-bud-53/aggregate", methods=["POST"])
 def chorus_inf_bud_53_aggregate():
     input_data = request.get_json()
-    with tempfile.NamedTemporaryFile() as a:
-        chorus.inf_bud_53_aggregate(input_data, a)
-        return send_file(a.name, download_name=f"INF_BUD_53_a.{input_data['format']}")
+    with tempfile.NamedTemporaryFile() as dest:
+        df = chorus.inf_bud_53_aggregate(input_data)
+
+        old = chorus.inf_bud_53_aggregate(input_data, True)
+        old["Nouvelle ligne"] = False
+        result = df.merge(old, how="left")
+        result["Nouvelle ligne"].fillna(True, inplace=True)
+
+        inf_bud_53.add_check_column(result)
+
+        file_ext = input_data["format"]
+        chorus.to(file_ext, result, dest)
+        return send_file(dest.name, download_name=f"INF_BUD_53_a.{file_ext}")

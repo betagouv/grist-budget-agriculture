@@ -19,22 +19,22 @@ export default function InfBud53() {
     });
 
     window.grist.onRecord(async (record, mapping) => {
-      setRecord(record)
-      setMapping(mapping)
+      setRecord(record);
+      setMapping(mapping);
     });
-  })
+  });
 
-  async function requestResult(format, record) {
-    setDoing(true)
+  async function requestResult(format, { record } = {}) {
+    setDoing(true);
     const tokenInfo = await grist.docApi.getAccessToken({ readOnly: false });
     const data = {
       mapping,
       tokenInfo,
       format,
-      record
-    }
+      record,
+    };
 
-    const url = `/api/chorus/inf-bud-53${record ? "": "/aggregate"}`
+    const url = `/api/chorus/inf-bud-53${record ? "" : "/aggregate"}`;
     const response = await fetch(url, {
       method: "POST",
       body: JSON.stringify(data),
@@ -43,38 +43,44 @@ export default function InfBud53() {
       },
     });
     if (response.status == 500) {
-      alert('error')
+      alert("error");
     } else {
       var link = document.createElement("a");
-      link.download = `inf_bud_53_${record ? `id_${record.id}` : 'agg'}.${format}`;
+      link.download = `inf_bud_53_${record ? `id_${record.id}` : "agg"}.${format}`;
       link.href = URL.createObjectURL(await response.blob());
       link.click();
     }
-    setDoing(false)
+    setDoing(false);
   }
 
-  async function onClick(format) {
-    await requestResult(format, record)
-  }
-
-  async function onAggregateClick(format) {
-    await requestResult(format)
+  function buildLinks(format, suffix) {
+    return (
+      <>
+        <button
+          disabled={doing || !record}
+          onClick={() => requestResult(format, { record })}
+        >
+          Récupérer l'extraction Chorus (id={record?.id}) filtrée pour les BC de
+          la Ruche {suffix}
+        </button>
+        {!record ? <p>Il faut sélectionner une ligne d'INF_BUG_53.</p> : ""}
+        <button disabled={doing} onClick={() => requestResult(format)}>
+          Récupérer un état global en regroupant les extractions Chorus les plus
+          récentes pour chaque année {suffix}
+        </button>
+      </>
+    );
   }
 
   return (
     <div>
       <h1>GO CHORUS</h1>
-      <button disabled={doing || !record} onClick={() => onClick("xlsx", record)}>Récupérer l'extraction Chorus filtrée pour les BC de la Ruche</button>
-      {!record ? <p>Il faut sélectionner une ligne d'INF_BUG_53.</p> : ""}
-      <button disabled={doing} onClick={() => onAggregateClick("xlsx")}>Récupérer un état global en regroupant les extractions Chorus les plus récentes pour chaque année</button>
+      {buildLinks("xlsx", "")}
       {process.env.NODE_ENV == "development" ? (
-          <div>
-            <button disabled={doing || !record} onClick={() => onClick("pickle", record)}>Récupérer l'extraction Chorus filtrée pour les BC de la Ruche (PICKLE)</button>
-            <button disabled={doing} onClick={() => onAggregateClick("pickle")}>Récupérer un état global en regroupant les extractions Chorus les plus récentes pour chaque année (PICKLE)</button>
-          </div>
-        ) : (
-          <></>
-        )}
+        <div>{buildLinks("pickle", "(PICKLE)")}</div>
+      ) : (
+        <></>
+      )}
     </div>
   );
 }

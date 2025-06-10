@@ -2,7 +2,6 @@ import os
 import pandas as pd
 import requests
 import tempfile
-import inf_bud_53
 
 
 def get_chorus_data(filepath):
@@ -91,8 +90,9 @@ def build_df(initial_df, token_info):
     df = merge_grist(initial_df, bcs, sfs)
 
     columns = (
-        df.columns
-    )  # [*initial_df.columns.values, "NoBDC", "Montant_AE", "Numero_BC", "Montant_CP"]
+        # df.columns
+        [*initial_df.columns.values, "NoBDC", "Montant_AE", "Numero_BC", "Montant_CP"]
+    )
     return df[columns].sort_values(
         ["N° EJ", "Exercice comptable", "Type montant", "NoBDC"]
     )
@@ -108,40 +108,48 @@ def to(ext, result, dest):
             writer.sheets["summary"].autofit()
 
 
-def inf_bud_53_filter(context, dest):
+def inf_bud_53_filter(context):
     token_info = context["tokenInfo"]
     attachments = context["record"][context["mapping"]["Piece_jointe"]]
     attachment_id = attachments[0]
     initial_df = download_infbud_csv(token_info, attachment_id)
 
     result = build_df(initial_df, token_info)
+    return result
 
-    to(context["format"], result, dest)
 
-
-def inf_bud_53_aggregate(context, dest):
-    token_info = context["tokenInfo"]
-    field_name = context["mapping"]["Piece_jointe"]
-
+def get_grist_restits(token_info):
     url = build_url(token_info, "INF_BUD_53")
     response = requests.get(url)
     grist_data = response.json()
     records = grist_data["records"]
-    restits = pd.DataFrame([r["fields"] for r in records])
-    restits.sort_values(["Cree_a"], inplace=True)
-    vals = restits.groupby("Annee").last()
+    return pd.DataFrame([r["fields"] for r in records])
 
-    attachment_ids = [attachment_ids[1] for attachment_ids in vals[field_name]]
 
+def build_agg_df(token_info, attachment_ids):
     dfs = [
         download_infbud_csv(token_info, attachment_id)
         for attachment_id in attachment_ids
     ]
-    initial_df = pd.concat(dfs)
-    result = build_df(initial_df, token_info)
-    inf_bud_53.add_check_column(result)
+    return pd.concat(dfs)
 
-    to(context["format"], result, dest)
+
+def inf_bud_53_aggregate(context, old=False):
+    token_info = context["tokenInfo"]
+    field_name = context["mapping"]["Piece_jointe"]
+
+    restits = get_grist_restits(token_info).sort_values(["Annee", "Cree_a"])
+    if old:
+        sorted_restits = restits[:-1]
+    else:
+        sorted_restits = restits[:]
+
+    vals = sorted_restits.groupby("Annee").last()
+    attachment_ids = [attachment_ids[1] for attachment_ids in vals[field_name]]
+    initial_df = build_agg_df(token_info, attachment_ids)
+
+    result = build_df(initial_df, token_info)
+    return result
 
 
 # « Montants engagé » : somme des montants consommés par l’EJ au statut « commande » au niveau du poste de l’EJ. L’indicateur se base sur la date d’impact budgétaire de l’EJ ;
