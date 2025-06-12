@@ -2,6 +2,7 @@ import os
 import pandas as pd
 import requests
 import tempfile
+import inf_bud_53
 
 
 def get_chorus_data(filepath):
@@ -84,14 +85,20 @@ def fetch_grist(token_info, table):
     return pd.DataFrame([{"id": r["id"], **r["fields"]} for r in records])
 
 
-def build_df(initial_df, token_info):
-    bcs = fetch_grist(token_info, "Bons_de_commande")
-    sfs = fetch_grist(token_info, "Services_Faits")
+def build_df(initial_df, bcs, sfs):
     df = merge_grist(initial_df, bcs, sfs)
 
     columns = (
         # df.columns
-        [*initial_df.columns.values, "NoBDC", "Montant_AE", "Numero_BC", "Montant_CP"]
+        [
+            *initial_df.columns.values,
+            "NoBDC",
+            "Montant_AE",
+            "Numero_BC",
+            "Montant_CP",
+            "No_SF",
+            "N_DP",
+        ]
     )
     return df[columns].sort_values(
         ["N° EJ", "Exercice comptable", "Type montant", "NoBDC"]
@@ -114,7 +121,10 @@ def inf_bud_53_filter(context):
     attachment_id = attachments[0]
     initial_df = download_infbud_csv(token_info, attachment_id)
 
-    result = build_df(initial_df, token_info)
+    bcs = fetch_grist(token_info, "Bons_de_commande")
+    sfs = fetch_grist(token_info, "Services_Faits")
+
+    result = build_df(initial_df, bcs, sfs)
     return result
 
 
@@ -126,29 +136,42 @@ def get_grist_restits(token_info):
     return pd.DataFrame([r["fields"] for r in records])
 
 
-def build_agg_df(token_info, attachment_ids):
-    dfs = [
-        download_infbud_csv(token_info, attachment_id)
-        for attachment_id in attachment_ids
-    ]
+def build_agg_df(ids, cache):
+    dfs = [cache[item_id] for item_id in ids]
     return pd.concat(dfs)
 
 
-def inf_bud_53_aggregate(context, old=False):
-    token_info = context["tokenInfo"]
+def get_attachment_ids(df, context):
     field_name = context["mapping"]["Piece_jointe"]
+    rows = df.groupby("Annee").last()[field_name]
+    return [r[1] for r in rows]
+
+
+def inf_bud_53_aggregate(context):
+    token_info = context["tokenInfo"]
 
     restits = get_grist_restits(token_info).sort_values(["Annee", "Cree_a"])
-    if old:
-        sorted_restits = restits[:-1]
-    else:
-        sorted_restits = restits[:]
+    old_restits = get_attachment_ids(restits[:-1], context)
+    current_restits = get_attachment_ids(restits[:], context)
 
-    vals = sorted_restits.groupby("Annee").last()
-    attachment_ids = [attachment_ids[1] for attachment_ids in vals[field_name]]
-    initial_df = build_agg_df(token_info, attachment_ids)
+    restits = set([*old_restits, *current_restits])
+    cache = {
+        cache_id: download_infbud_csv(token_info, cache_id) for cache_id in restits
+    }
+    old_df = build_agg_df(old_restits, cache)
+    current_df = build_agg_df(current_restits, cache)
 
-    result = build_df(initial_df, token_info)
+    bcs = fetch_grist(token_info, "Bons_de_commande")
+    sfs = fetch_grist(token_info, "Services_Faits")
+
+    old = build_df(old_df, bcs, sfs)
+    old["Nouvelle ligne"] = False
+
+    current = build_df(current_df, bcs, sfs)
+    result = current.merge(old, how="left")
+    result["Nouvelle ligne"].fillna(True, inplace=True)
+
+    inf_bud_53.add_check_column(result)
     return result
 
 

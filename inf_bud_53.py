@@ -1,9 +1,33 @@
 def comment(e, group, ci):
     montant_type = e[ci["Type montant"]]
-    if montant_type != "Montant engagé":
-        return ""
-    total_bc = e[ci["Montant_AE"]]
     montant_ligne = e[ci["Montant Chorus"]]
+    if montant_type != "Montant engagé":
+        if montant_type != "Montant réceptionné":
+            return ""
+        montant_sf = e[ci["Montant_CP"]]
+        diff = montant_ligne - montant_sf
+        if abs(diff) < 0.01:
+            return "OK - SF"
+
+        receptionne_c = group["Type montant"] == "Montant réceptionné"
+        nsf = e[ci["N° SF"]]
+        nsf_c = group["N° SF"] == nsf
+        r_df = group[receptionne_c * nsf_c]
+        receptionne = r_df["Montant_CP"].sum()
+
+        diff = receptionne - montant_ligne
+        if abs(diff) < 0.01:
+            return "OK - SF subdivisé Grist"
+
+        receptionne_chorus = r_df["Montant Chorus"].sum()
+        montant_c = (r_df["Montant_CP"] == montant_sf).all()
+        diff = receptionne_chorus - montant_sf
+        if montant_c and abs(diff) < 0.01:
+            return "OK - SF subdivisé Chorus"
+
+        return "KO - SF"
+
+    total_bc = e[ci["Montant_AE"]]
 
     if montant_ligne == total_bc:
         return "OK - BC initial"
@@ -25,9 +49,9 @@ def comment(e, group, ci):
     reste_a_payer = total_bc - paye
     diff = montant_ligne - reste_a_payer
     if abs(diff) < 0.01:
-        return "OK - Reste à engager"
+        return "OK - BC Reste à engager"
     else:
-        return "KO - Écart non expliqué (diff={:>12_.2f})".format(diff)
+        return "KO - BC Écart non expliqué (diff={:>12_.2f})".format(diff)
 
 
 def grouped_comment(group):
