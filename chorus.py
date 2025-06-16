@@ -2,7 +2,6 @@ import os
 import pandas as pd
 import requests
 import tempfile
-import inf_bud_53
 
 
 def get_chorus_data(filepath):
@@ -44,8 +43,10 @@ def get_chorus_data(filepath):
     return res
 
 
+bccol = "NoBDC"
+
+
 def merge_grist(df, gristBC, gristSF):
-    bccol = "NoBDC"
     sfcol = "No_SF"
     df_join = df.merge(
         gristBC[gristBC[bccol] != ""],
@@ -111,7 +112,7 @@ def to(ext, result, dest):
         dest.seek(os.SEEK_SET, 0)
     else:
         with pd.ExcelWriter(dest, engine="xlsxwriter") as writer:
-            result.to_excel(writer, sheet_name="summary")
+            result.to_excel(writer, sheet_name="summary", index=False)
             writer.sheets["summary"].autofit()
 
 
@@ -162,17 +163,26 @@ def inf_bud_53_aggregate(context):
     current_df = build_agg_df(current_restits, cache)
 
     bcs = fetch_grist(token_info, "Bons_de_commande")
-    sfs = fetch_grist(token_info, "Services_Faits")
+    bc_to_join = bcs[bcs[bccol] != ""][[bccol]]
 
-    old = build_df(old_df, bcs, sfs)
-    old["Nouvelle ligne"] = False
+    old = old_df.merge(
+        bc_to_join,
+        left_on="N° EJ",
+        right_on=bccol,
+        how="inner",
+    )
+    old["Ancienne ligne"] = True
 
-    current = build_df(current_df, bcs, sfs)
-    result = current.merge(old, how="left")
-    result["Nouvelle ligne"].fillna(True, inplace=True)
+    current = current_df.merge(
+        bc_to_join,
+        left_on="N° EJ",
+        right_on=bccol,
+        how="inner",
+    )
+    current["Nouvelle ligne"] = True
+    result = current.merge(old, how="outer")
 
-    inf_bud_53.add_check_column(result)
-    return result
+    return result.sort_values(["N° EJ", "Exercice comptable", "Type montant"])
 
 
 # « Montants engagé » : somme des montants consommés par l’EJ au statut « commande » au niveau du poste de l’EJ. L’indicateur se base sur la date d’impact budgétaire de l’EJ ;
