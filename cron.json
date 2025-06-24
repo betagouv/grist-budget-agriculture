@@ -1,7 +1,7 @@
 {
   "jobs": [
     {
-      "command": "5 4 * * * python cli.py",
+      "command": "5 4 * * * python cli.py access update",
       "size": "S"
     }
   ]
