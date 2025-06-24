@@ -5,7 +5,7 @@
       "size": "S"
     },
     {
-      "command": "8 54 * * * python cli.py email check",
+      "command": "54 8 * * * python cli.py email check",
       "size": "S"
     }
   ]
