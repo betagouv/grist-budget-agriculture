@@ -34,3 +34,5 @@ This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-
 ```bash
 npm run dev
 ```
+
+Le back end a deux points d'entrée intéressants, la ligne de commande `cli.py` et le serveur `app.py`.

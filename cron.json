@@ -4,5 +4,9 @@
       "command": "5 4 * * * python cli.py access update",
       "size": "S"
     }
+    {
+      "command": "8 54 * * * python cli.py email check",
+      "size": "S"
+    }
   ]
 }

@@ -30,3 +30,17 @@ def updateAttachmentField(context):
         response = None
 
     return check_responses, response
+
+
+def uploadAttachment(file):
+    files = {"upload": file}
+    full_url = "%s/api/docs/%s/attachments" % (api._server, api._doc_id)
+    resp = requests.post(
+        full_url,
+        files=files,
+        headers={
+            "Authorization": "Bearer %s" % api._api_key,
+            "Accept": "application/json",
+        },
+    )
+    return resp.json()[0]

@@ -3,6 +3,7 @@ Flask
 flask-cors
 grist_api
 gunicorn
+imaplib2
 pandas
 pre-commit
 pyjwt
