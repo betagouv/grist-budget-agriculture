@@ -11,7 +11,7 @@ export default function Document() {
         ) : (
           <></>
         )}
-        <Main className="main" />
+        <Main />
         <NextScript />
         <Script
           src="https://grist.numerique.gouv.fr/grist-plugin-api.js"
