@@ -1,15 +1,16 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { HotTable } from "@handsontable/react-wrapper";
 import { registerAllModules } from "handsontable/registry";
 
 registerAllModules();
 
-function filterMonthRowRecords(data) {
+function filterMonthRowRecords(data, year) {
   const names = Object.keys(data);
   const years = data.Annualite_budgetaire;
 
   const filteredData = years.reduce((a, y, i) => {
-    if (y == 2025) {
+    if (y == year) {
       a.push(
         names.reduce((res, n) => {
           res[n] = data[n][i];
@@ -25,6 +26,10 @@ function filterMonthRowRecords(data) {
 
 export default function PreviewPage() {
   const hotRef = useRef(null);
+  const searchParams = useSearchParams();
+  const year = searchParams.get("year");
+
+  const [allMonths, setAllMonths] = useState();
   const [months, setMonths] = useState([]);
   const [data, setData] = useState();
   const [rowData, setRowData] = useState([]);
@@ -43,10 +48,17 @@ export default function PreviewPage() {
       const recordData = await window.grist.docApi.fetchTable(
         "Mois_de_facturation",
       );
-      setMonths(filterMonthRowRecords(recordData));
+      setAllMonths(recordData);
     }
     fetchMonths();
   }, []);
+
+  useEffect(() => {
+    if (!allMonths) {
+      return
+    }
+    setMonths(filterMonthRowRecords(allMonths, parseInt(year)));
+  }, [allMonths, year]);
 
   useEffect(() => {
     if (!data?.length) {
