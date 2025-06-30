@@ -3,26 +3,11 @@ import { useSearchParams } from "next/navigation";
 import { HotTable } from "@handsontable/react-wrapper";
 import { registerAllModules } from "handsontable/registry";
 
+import { filterMonthRowRecords } from "../lib/month.js";
+
+
 registerAllModules();
 
-function filterMonthRowRecords(data, year) {
-  const names = Object.keys(data);
-  const years = data.Annualite_budgetaire;
-
-  const filteredData = years.reduce((a, y, i) => {
-    if (y == year) {
-      a.push(
-        names.reduce((res, n) => {
-          res[n] = data[n][i];
-          return res;
-        }, {}),
-      );
-    }
-    return a;
-  }, []);
-
-  return filteredData.toSorted((a, b) => a.c1er_du_mois - b.c1er_du_mois);
-}
 
 export default function PreviewPage() {
   const hotRef = useRef(null);
