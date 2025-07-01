@@ -3,7 +3,7 @@ import { useSearchParams } from "next/navigation";
 import { HotTable } from "@handsontable/react-wrapper";
 import { registerAllModules } from "handsontable/registry";
 
-import { filterMonthRowRecords } from "../lib/month.js";
+import { filterMonthRowRecords } from "../lib/month.mjs";
 
 
 registerAllModules();

@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import jsonwebtoken from "jsonwebtoken";
 
-import { filterMonthRowRecords } from "../lib/month.js";
+import { filterMonthRowRecords } from "../lib/month.mjs";
 
 export default function InspectOnRecords() {
   const searchParams = useSearchParams();
