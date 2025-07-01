@@ -12,7 +12,7 @@ registerAllModules();
 export default function PreviewPage() {
   const hotRef = useRef(null);
   const searchParams = useSearchParams();
-  const year = searchParams.get("year");
+  const period = searchParams.get("period");
 
   const [allMonths, setAllMonths] = useState();
   const [months, setMonths] = useState([]);
@@ -42,8 +42,8 @@ export default function PreviewPage() {
     if (!allMonths) {
       return
     }
-    setMonths(filterMonthRowRecords(allMonths, parseInt(year)));
-  }, [allMonths, year]);
+    setMonths(filterMonthRowRecords(allMonths, period));
+  }, [allMonths, period]);
 
   useEffect(() => {
     if (!data?.length) {

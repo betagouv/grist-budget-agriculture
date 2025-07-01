@@ -6,7 +6,7 @@ import { filterMonthRowRecords } from "../lib/month.mjs";
 
 export default function InspectOnRecords() {
   const searchParams = useSearchParams();
-  const year = searchParams.get("year");
+  const period = searchParams.get("period");
   const [record, setRecord] = useState();
   const [allMonths, setAllMonths] = useState();
   const [month, setMonth] = useState();
@@ -27,12 +27,12 @@ export default function InspectOnRecords() {
   }, []);
 
   useEffect(() => {
-    if (!year || !allMonths) {
+    if (!period || !allMonths) {
       return
     }
-    const months = filterMonthRowRecords(allMonths, parseInt(year))
+    const months = filterMonthRowRecords(allMonths, period)
     setMonth(months[0])
-  }, [year, allMonths])
+  }, [period, allMonths])
 
   function addRow() {
     window.grist.getTable("Conso_mensuelle").create([{fields: {
