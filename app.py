@@ -13,6 +13,7 @@ import chorus
 import generate_pdf
 import grist
 import notifications
+import ppa
 import send_email
 
 
@@ -161,3 +162,11 @@ def chorus_inf_bud_53_aggregate():
         file_ext = input_data["format"]
         chorus.to(file_ext, result, dest)
         return send_file(dest.name, download_name=f"INF_BUD_53_a.{file_ext}")
+
+
+@application.route(f"{subdomain}/ppa/combinatoire")
+def ppa_combinatoire():
+    with tempfile.NamedTemporaryFile() as dest:
+        ppa.main(dest)
+        dest.seek(os.SEEK_SET, 0)
+        return send_file(dest.name, download_name="PPA.xlsx")
