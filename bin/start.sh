@@ -1,3 +1,3 @@
 #!/bin/bash
 
-gunicorn app --log-file -
+gunicorn app --log-file - --timeout 300
