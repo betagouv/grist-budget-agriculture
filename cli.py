@@ -7,7 +7,7 @@ import check_emails
 
 @click.group()
 def cli():
-    logging.basicConfig(level=logging.WARNING)
+    logging.basicConfig(level=logging.INFO)
 
 
 @cli.group()

@@ -40,13 +40,13 @@ def write_zip(msg, tzf):
 def process_email(msg, bcs):
     res = email.utils.parseaddr(msg.get("From"))
     if res[1] != "bdc-rpa.aife@finances.gouv.fr":
-        logging.debug("Message ne provenant pas de l'AIFE")
+        logging.info("Message ne provenant pas de l'AIFE")
         return
     s = msg.get("Subject")
     nbc = extract_BC(s)
     bcm = [bc for bc in bcs if bc.NoBDC == nbc]
     if len(bcm) == 1:
-        logger.info("Déjà inscrit")
+        logger.info(f"Déjà inscrit (N°BD {nbc})")
         return
     elif len(bcm) > 1:
         logger.warn("Plusieurs correspondances en N°EJ")
@@ -54,7 +54,7 @@ def process_email(msg, bcs):
     with tempfile.TemporaryFile() as tzf:
         result = write_zip(msg, tzf)
         if result is None:
-            logger.warn("Pas de ficher ZIP en pièce jointe de l'email")
+            logger.info("Pas de ficher ZIP en pièce jointe de l'email")
             return
         tzf.seek(0)
         zf = zipfile.ZipFile(tzf)
@@ -85,19 +85,20 @@ def process_email(msg, bcs):
                 return
 
             tf.seek(0)
-            a_id = uploadAttachment((bc.orig_filename, tf.read()))
-            bdc_file = [*record.bdc_file, a_id] if record.bdc_file else ["L", a_id]
-            api.update_records(
-                "Bons_de_commande",
-                [{"id": record.id, "NoBDC": nbc, "bdc_file": bdc_file}],
-            )
-            logger.warning("Ajout du N° de BC et du PDF du BC pour %s" % nbc)
+            if False:
+                a_id = uploadAttachment((bc.orig_filename, tf.read()))
+                bdc_file = [*record.bdc_file, a_id] if record.bdc_file else ["L", a_id]
+                api.update_records(
+                    "Bons_de_commande",
+                    [{"id": record.id, "NoBDC": nbc, "bdc_file": bdc_file}],
+                )
+            logger.info("Ajout du N° de BC et du PDF du BC pour %s" % nbc)
 
 
 def for_BC():
     M = imaplib2.IMAP4_SSL(host=os.environ["IMAP_SERVER"], port=993)
     M.login(os.environ["IMAP_USER"], os.environ["IMAP_PASSWORD"])
-    M.SELECT()
+    M.SELECT(readonly=False)
 
     subject = "Envoi BDC_"
     search = '(UNSEEN SUBJECT "{}")'.format(subject)
@@ -116,4 +117,4 @@ def for_BC():
 
     M.close()
     M.logout()
-    logger.warning("Finished")
+    logger.info("Finished")
