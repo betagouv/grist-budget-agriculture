@@ -1,3 +1,4 @@
+import datetime
 import dotenv
 import email.header
 import email.parser
@@ -72,27 +73,49 @@ def process_email(msg, bcs):
             ]
             brbs = list(set(re.compile("BRB[^ ]+").findall(text)))
 
+            record = None
             if brbs:
                 brb = brbs[0]
                 bm = [bc for bc in bcs if bc.No_DA == brb and bc.Montant_AE in numbers]
                 if len(bm) == 1:
                     record = bm[0]
-            mm = [bc for bc in bcs if bc.Montant_AE in numbers]
-            if len(mm) == 1:
-                record = mm[0]
-            else:
+
+            if record is None:
+                mm = [bc for bc in bcs if bc.Montant_AE in numbers]
+                if len(mm) == 1:
+                    record = mm[0]
+
+            if record is None:
                 logger.error("Pas de correspondances")
                 return
 
             tf.seek(0)
-            if False:
-                a_id = uploadAttachment((bc.orig_filename, tf.read()))
-                bdc_file = [*record.bdc_file, a_id] if record.bdc_file else ["L", a_id]
-                api.update_records(
-                    "Bons_de_commande",
-                    [{"id": record.id, "NoBDC": nbc, "bdc_file": bdc_file}],
-                )
-            logger.info("Ajout du N° de BC et du PDF du BC pour %s" % nbc)
+            a_id = uploadAttachment((bc.orig_filename, tf.read()))
+            bdc_file = [*record.bdc_file, a_id] if record.bdc_file else ["L", a_id]
+
+            update = {
+                "id": record.id,
+                "NoBDC": nbc,
+                "bdc_file": bdc_file,
+                "Statut": "3. BDC reçu",
+            }
+
+            dates = re.findall("DATE : (\d{2}\.\d{2}\.\d{4})", text)
+            if dates:
+                try:
+                    update["Date_BDC"] = datetime.datetime.strptime(
+                        dates[0], "%d.%m.%Y"
+                    )
+                except Exception:
+                    logger.error(f"Erreur de parsing de {dates[0]}")
+            else:
+                logger.error(f"Pas de date trouvée dans le PDF du BC N° {nbc}")
+
+            api.update_records(
+                "Bons_de_commande",
+                [update],
+            )
+            logger.info(f"Ajout du N° de BC, du PDF et de la date du BC pour {nbc}")
 
 
 def for_BC():
