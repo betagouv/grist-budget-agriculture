@@ -1,5 +1,6 @@
 from dotenv import load_dotenv
 import os
+import re
 import smtplib
 import ssl
 from email.mime.multipart import MIMEMultipart
@@ -24,10 +25,13 @@ def send_message(msg):
         server.send_message(msg)
 
 
-def send(subjet, body):
+def send(subjet, body, **kwargs):
     msg = MIMEMultipart("alternative")
     msg["Subject"] = subjet
     msg["To"] = receiver_email
+    for v in kwargs:
+        key = re.sub("(?P<prev>[a-z])(?P<cap>[A-Z])", "\g<prev>-\g<cap>", v)
+        msg[key] = kwargs[v]
     full_body = "\n\n".join(
         [body, "Message automatique de github.com/betagouv/notifs-grist-agriculture"]
     )

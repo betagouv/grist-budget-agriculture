@@ -4,6 +4,7 @@ import email.header
 import email.parser
 import email.utils
 import imaplib2
+import io
 import logging
 import os
 from pypdf import PdfReader
@@ -11,6 +12,8 @@ import re
 import tempfile
 import zipfile
 from grist import api, uploadAttachment
+
+import send_email
 
 dotenv.load_dotenv()
 logger = logging.getLogger(__name__)
@@ -38,13 +41,7 @@ def write_zip(msg, tzf):
     return None
 
 
-def process_email(msg, bcs):
-    res = email.utils.parseaddr(msg.get("From"))
-    if res[1] != "bdc-rpa.aife@finances.gouv.fr":
-        logging.info("Message ne provenant pas de l'AIFE")
-        return
-    s = msg.get("Subject")
-    nbc = extract_BC(s)
+def process_bc(nbc, msg, bcs):
     bcm = [bc for bc in bcs if bc.NoBDC == nbc]
     if len(bcm) == 1:
         logger.info(f"Déjà inscrit (N°BD {nbc})")
@@ -118,25 +115,55 @@ def process_email(msg, bcs):
             logger.info(f"Ajout du N° de BC, du PDF et de la date du BC pour {nbc}")
 
 
+def process_email(msg, bcs):
+    res = email.utils.parseaddr(msg.get("From"))
+    if res[1] != "bdc-rpa.aife@finances.gouv.fr":
+        logging.info("Message ne provenant pas de l'AIFE")
+        return
+    s = msg.get("Subject")
+    nbc = extract_BC(s)
+    process_bc(nbc, msg, bcs)
+    return nbc
+
+
+def report_analysis(msg, bcs):
+    logger = logging.getLogger()
+    output = io.StringIO()
+    ch = logging.StreamHandler(output)
+    ch.setLevel(logging.INFO)
+    logger.addHandler(ch)
+
+    nbc = process_email(msg, bcs)
+
+    ch.flush()
+    send_email.send(
+        f"Traitement automatique de l'email pour {nbc}",
+        output.getvalue(),
+        InReplyTo=msg.get("Message-Id"),
+    )
+    logger.removeHandler(ch)
+    output.close()
+
+
 def for_BC():
     M = imaplib2.IMAP4_SSL(host=os.environ["IMAP_SERVER"], port=993)
     M.login(os.environ["IMAP_USER"], os.environ["IMAP_PASSWORD"])
-    M.SELECT(readonly=False)
+    M.SELECT(readonly=True)
 
     subject = "Envoi BDC_"
-    search = '(UNSEEN SUBJECT "{}")'.format(subject)
+    search = '(SUBJECT "{}")'.format(subject)
     typ, data = M.SEARCH(None, search)
     ll = data[0].decode().split()
 
     bcs = api.fetch_table("Bons_de_commande")
 
     bp = email.parser.BytesParser()
-    results = []
+    ll = ll[0:1]
     for num in reversed(ll):
         typ2, data2 = M.FETCH(num, "RFC822")
         v = data2[0][1]
         msg = bp.parsebytes(v)
-        results.append(process_email(msg, bcs))
+        report_analysis(msg, bcs)
 
     M.close()
     M.logout()
