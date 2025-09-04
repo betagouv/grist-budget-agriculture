@@ -135,6 +135,9 @@ def report_analysis(msg, bcs):
 
     nbc = process_email(msg, bcs)
 
+    if not nbc:
+        return
+
     ch.flush()
     send_email.send(
         f"Traitement automatique de l'email pour {nbc}",
@@ -148,17 +151,16 @@ def report_analysis(msg, bcs):
 def for_BC():
     M = imaplib2.IMAP4_SSL(host=os.environ["IMAP_SERVER"], port=993)
     M.login(os.environ["IMAP_USER"], os.environ["IMAP_PASSWORD"])
-    M.SELECT(readonly=True)
+    M.SELECT(readonly=False)
 
     subject = "Envoi BDC_"
-    search = '(SUBJECT "{}")'.format(subject)
+    search = '(UNSEEN SUBJECT "{}")'.format(subject)
     typ, data = M.SEARCH(None, search)
     ll = data[0].decode().split()
 
     bcs = api.fetch_table("Bons_de_commande")
 
     bp = email.parser.BytesParser()
-    ll = ll[0:1]
     for num in reversed(ll):
         typ2, data2 = M.FETCH(num, "RFC822")
         v = data2[0][1]
