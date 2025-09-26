@@ -2,7 +2,7 @@ import click
 import logging
 
 from access import update as update_fct
-import check_emails
+import check_emails_for_bc
 
 
 @click.group()
@@ -25,9 +25,14 @@ def email():
     pass
 
 
-@email.command()
+@email.group()
 def check():
-    check_emails.for_BC()
+    pass
+
+
+@check.command()
+def bc():
+    check_emails_for_bc.main()
 
 
 if __name__ == "__main__":

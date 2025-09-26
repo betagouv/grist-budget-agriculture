@@ -148,7 +148,7 @@ def report_analysis(msg, bcs):
     output.close()
 
 
-def for_BC():
+def main():
     M = imaplib2.IMAP4_SSL(host=os.environ["IMAP_SERVER"], port=993)
     M.login(os.environ["IMAP_USER"], os.environ["IMAP_PASSWORD"])
     M.SELECT(readonly=False)
