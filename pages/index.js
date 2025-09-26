@@ -175,7 +175,6 @@ export default function PreviewPage() {
             Contrat_Freelance: p,
             Mois: m,
             Nb_jours_factures: newValue,
-            Statut: "Estimation",
           },
           require: {
             Contrat_Freelance: p,
