@@ -25,24 +25,27 @@ def send_message(msg):
         server.send_message(msg)
 
 
-def send(subjet, body, **kwargs):
+def send(subjet, body, html_body=None, **kwargs):
     msg = MIMEMultipart("alternative")
     msg["Subject"] = subjet
     msg["To"] = receiver_email
+    message = "Message automatique de github.com/betagouv/notifs-grist-agriculture"
     for v in kwargs:
         key = re.sub("(?P<prev>[a-z])(?P<cap>[A-Z])", "\g<prev>-\g<cap>", v)
         msg[key] = kwargs[v]
-    full_body = "\n\n".join(
-        [body, "Message automatique de github.com/betagouv/notifs-grist-agriculture"]
-    )
+    full_body = "\n\n".join([body, message])
     part1 = MIMEText(full_body, "plain", "utf-8")
     msg.attach(part1)
+
+    if html_body:
+        part2 = MIMEText(f"{html_body}<div>{message}</div>", "html", "utf-8")
+        msg.attach(part2)
 
     send_message(msg)
 
 
 def main():
-    send("TEST", "TEST")
+    send("TEST", "TEST", "TEST")
 
 
 if __name__ == "__main__":
