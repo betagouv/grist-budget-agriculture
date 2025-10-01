@@ -44,3 +44,15 @@ def uploadAttachment(file):
         },
     )
     return resp.json()[0]
+
+
+def downloadAttachment(a_id):
+    attachment_id = int(a_id)
+    rel_path = f"tmp/a_{int(a_id)}"
+    if os.path.exists(rel_path):
+        return rel_path
+
+    response = api.call(f"attachments/{attachment_id}/download", method="GET")
+    with open(rel_path, "wb") as f:
+        f.write(response.content)
+    return rel_path
