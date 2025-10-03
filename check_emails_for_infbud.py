@@ -70,7 +70,8 @@ def report_analysis(msg):
         last_df = pd.read_excel(last_doc)
         last = extract_bcs(nbcs, last_df)
 
-        df = pd.read_excel(doc)
+        _, doc_content = doc
+        df = pd.read_excel(doc_content)
         current = extract_bcs(nbcs, df)
 
         diff_df = get_diff(last, current)
