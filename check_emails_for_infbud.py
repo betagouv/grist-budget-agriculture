@@ -137,9 +137,9 @@ def test():
     nbcs = [bc.NoBDC for bc in bcs if bc.NoBDC]
 
     infbuds = api.fetch_table("INF_BUD_53", {"Annee": 2025, "Type": "Automatique"})
-    sorted_infbuds = sorted(infbuds, key=lambda x: x.Cree_a, reverse=True)
+    sorted_infbuds = sorted(infbuds, key=lambda x: x.Cree_a)
 
-    items = [(i, i.Document[1]) for i in sorted_infbuds][-4:-1]
+    items = [(i, i.Document[1]) for i in sorted_infbuds][-6:-1]
 
     def get_extract(a_id):
         doc = downloadAttachment(a_id)
@@ -149,14 +149,17 @@ def test():
     html = io.StringIO()
     html.write("<h1>RECAP</h1>")
     for (item_m_1, last_m_1), (item, last) in itertools.pairwise(items):
+        print(datetime.datetime.fromtimestamp(item.Cree_a))
         last_m_1doc = get_extract(last_m_1)
         last_doc = get_extract(last)
         diff_df = get_diff(last_m_1doc, last_doc)
 
         if len(diff_df):
             url = f"https://grist.numerique.gouv.fr/o/masaf/9mbWaZNUvym2/Budget/p/100?aclAsUser_=thomas.guillet%2Bruche%40beta.gouv.fr#a1.s485.r{item.id}.c2649"
-            html.write(f'<div><a href="{url}">INF_BUD du {item.Cree_a}</a></div>\n')
-            html.write(diff_df.transpose().to_html())
+            html.write(
+                f'<div><a href="{url}">INF_BUD du {datetime.datetime.fromtimestamp(item.Cree_a)}</a></div>\n'
+            )
+            html.write(diff_df.to_html())
             html.write("\n")
 
     send_email.send("test", "GO", html.getvalue())
