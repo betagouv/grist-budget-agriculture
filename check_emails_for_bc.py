@@ -70,19 +70,19 @@ def process_bc(nbc, msg, bcs):
             ]
             brbs = list(set(re.compile("BRB[^ ]+").findall(text)))
 
-            record = None
-            if brbs:
+            potential_bcs = [bc for bc in bcs if not bc.NoBDC]
+            matching_amount = [bc for bc in potential_bcs if bc.Montant_AE in numbers]
+            if len(matching_amount) == 1:
+                record = matching_amount[0]
+            elif brbs:
                 brb = brbs[0]
-                bm = [bc for bc in bcs if bc.No_DA == brb and bc.Montant_AE in numbers]
-                if len(bm) == 1:
-                    record = bm[0]
-
-            if record is None:
-                mm = [bc for bc in bcs if bc.Montant_AE in numbers]
-                if len(mm) == 1:
-                    record = mm[0]
-
-            if record is None:
+                matching_da = [bc for bc in matching_amount if bc.No_DA == brb]
+                if len(matching_da) == 1:
+                    record = matching_da[0]
+                else:
+                    logger.error(f"Plusieurs correspondances en N°DA {brb}")
+                    return
+            else:
                 logger.error("Pas de correspondances")
                 return
 
