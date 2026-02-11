@@ -1,11 +1,11 @@
 {
   "jobs": [
     {
-      "command": "5 4 * * * python cli.py access update",
+      "command": "5 4 * * * python grist_budget_agriculture/cli.py access update",
       "size": "S"
     },
     {
-      "command": "54 6 * * * python cli.py email check all",
+      "command": "54 6 * * * python grist_budget_agriculture/cli.py email check all",
       "size": "S"
     }
   ]
