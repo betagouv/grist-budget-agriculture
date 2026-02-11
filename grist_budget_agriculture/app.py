@@ -18,7 +18,7 @@ import grist_budget_agriculture.send_email as send_email
 
 
 load_dotenv()
-application = Flask(__name__, static_folder="out", static_url_path="")
+application = Flask(__name__, static_folder="../out", static_url_path="")
 CORS(application)
 webhook_route = os.environ["SECRET_ROUTE"]
 subdomain = os.getenv("SUBDOMAIN", "/api")
