@@ -1,9 +1,9 @@
 import click
 import logging
 
-from access import update as update_fct
-import check_emails_for_bc
-import check_emails_for_infbud
+from grist_budget_agriculture.access import update as update_fct
+import grist_budget_agriculture.check_emails_for_bc as check_emails_for_bc
+import grist_budget_agriculture.check_emails_for_infbud as check_emails_for_infbud
 
 
 @click.group()

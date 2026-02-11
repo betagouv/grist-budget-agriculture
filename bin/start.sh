@@ -1,3 +1,3 @@
 #!/bin/bash
 
-gunicorn app --log-file - --timeout 300
+gunicorn grist_budget_agriculture.app --log-file - --timeout 300

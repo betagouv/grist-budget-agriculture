@@ -10,9 +10,9 @@ import logging
 import os
 import re
 import pandas as pd
-from grist import api, uploadAttachment, downloadAttachment
+from grist_budget_agriculture.grist import api, uploadAttachment, downloadAttachment
 
-import send_email
+import grist_budget_agriculture.send_email as send_email
 
 dotenv.load_dotenv()
 logger = logging.getLogger(__name__)

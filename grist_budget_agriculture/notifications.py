@@ -2,7 +2,7 @@ import datetime
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 import json
-from grist import api
+from grist_budget_agriculture.grist import api
 import locale
 
 locale.setlocale(locale.LC_MONETARY, "")

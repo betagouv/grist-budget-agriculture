@@ -1,6 +1,6 @@
-from grist import api
+from grist_budget_agriculture.grist import api
 from pprint import pprint
-import send_email
+import grist_budget_agriculture.send_email as send_email
 
 
 def generate_updates():

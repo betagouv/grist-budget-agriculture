@@ -11,9 +11,9 @@ from pypdf import PdfReader
 import re
 import tempfile
 import zipfile
-from grist import api, uploadAttachment
+from grist_budget_agriculture.grist import api, uploadAttachment
 
-import send_email
+import grist_budget_agriculture.send_email as send_email
 
 dotenv.load_dotenv()
 logger = logging.getLogger(__name__)

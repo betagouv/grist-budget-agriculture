@@ -8,13 +8,13 @@ import requests
 import shutil
 import tempfile
 
-import access
-import chorus
-import generate_pdf
-import grist
-import notifications
-import ppa
-import send_email
+import grist_budget_agriculture.access as access
+import grist_budget_agriculture.chorus as chorus
+import grist_budget_agriculture.generate_pdf as generate_pdf
+import grist_budget_agriculture.grist as grist
+import grist_budget_agriculture.notifications as notifications
+import grist_budget_agriculture.ppa as ppa
+import grist_budget_agriculture.send_email as send_email
 
 
 load_dotenv()
