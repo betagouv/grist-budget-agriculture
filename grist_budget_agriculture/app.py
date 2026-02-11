@@ -13,7 +13,6 @@ import grist_budget_agriculture.chorus as chorus
 import grist_budget_agriculture.generate_pdf as generate_pdf
 import grist_budget_agriculture.grist as grist
 import grist_budget_agriculture.notifications as notifications
-import grist_budget_agriculture.ppa as ppa
 import grist_budget_agriculture.send_email as send_email
 
 
@@ -162,11 +161,3 @@ def chorus_inf_bud_53_aggregate():
         file_ext = input_data["format"]
         chorus.to(file_ext, result, dest)
         return send_file(dest.name, download_name=f"INF_BUD_53_a.{file_ext}")
-
-
-@application.route(f"{subdomain}/ppa/combinatoire")
-def ppa_combinatoire():
-    with tempfile.NamedTemporaryFile() as dest:
-        ppa.main(dest)
-        dest.seek(os.SEEK_SET, 0)
-        return send_file(dest.name, download_name="PPA.xlsx")
