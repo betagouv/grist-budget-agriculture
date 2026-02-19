@@ -29,7 +29,7 @@ def send(subjet, body, html_body=None, **kwargs):
     msg = MIMEMultipart("alternative")
     msg["Subject"] = subjet
     msg["To"] = receiver_email
-    message = "Message automatique de github.com/betagouv/notifs-grist-agriculture"
+    message = "Message automatique de github.com/betagouv/grist-budget-agriculture"
     for v in kwargs:
         key = re.sub("(?P<prev>[a-z])(?P<cap>[A-Z])", "\g<prev>-\g<cap>", v)
         msg[key] = kwargs[v]
