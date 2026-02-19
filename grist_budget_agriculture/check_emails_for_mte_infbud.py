@@ -1,0 +1,157 @@
+import datetime
+import dotenv
+import email.header
+import email.parser
+import email.utils
+import imaplib2
+import io
+import logging
+import os
+import re
+import pandas as pd
+import grist_budget_agriculture.send_email as send_email
+from grist_budget_agriculture.grist import api, uploadAttachment, downloadAttachment
+
+from jinja2 import Environment, PackageLoader, select_autoescape
+
+env = Environment(
+    loader=PackageLoader("grist_budget_agriculture"), autoescape=select_autoescape()
+)
+
+
+dotenv.load_dotenv()
+logger = logging.getLogger(__name__)
+xlsx_re = re.compile(".*INFBUD53.*\.xlsx")
+
+
+def get_xlsx(msg):
+    for part in msg.walk():
+        name = part.get_filename()
+        if name and xlsx_re.match(name):
+            return (name, part.get_payload(decode=True))
+    return None
+
+
+def process_email(msg):
+    result = get_xlsx(msg)
+    if result is None:
+        logger.info("Pas de ficher xlsx en pièce jointe de l'email")
+        return
+    dt = datetime.datetime.strptime(msg.get("Date"), "%d %b %Y %H:%M:%S %z")
+
+    a_id = uploadAttachment(result)
+    create = {
+        "Document": a_id,
+        "Annee": 2025,
+        "Cree_a": dt,
+        "Type": "Automatique",
+    }
+
+    api.add_records(
+        "INF_BUD_53",
+        [create],
+    )
+    return result
+
+
+def report_analysis(msg):
+    logger = logging.getLogger()
+    output = io.StringIO()
+    ch = logging.StreamHandler(output)
+    ch.setLevel(logging.INFO)
+    logger.addHandler(ch)
+
+    doc = process_email(msg)
+
+    html = None
+    if doc:
+        bcs = api.fetch_table("Bons_de_commande")
+        nbcs = [bc.NoBDC for bc in bcs if bc.NoBDC]
+
+        infbuds = api.fetch_table("INF_BUD_53", {"Annee": 2025, "Type": "Automatique"})
+        infbud = sorted(infbuds, key=lambda x: x.Cree_a, reverse=True)[0]
+
+        last_doc = downloadAttachment(infbud.Document[1])
+        last_df = pd.read_excel(last_doc)
+        last = extract_bcs(nbcs, last_df)
+
+        _, doc_content = doc
+        df = pd.read_excel(doc_content)
+        current = extract_bcs(nbcs, df)
+
+        diff_df = get_diff(last, current)
+
+        if len(diff_df):
+            html = io.StringIO()
+            html.write("<h1>RECAP</h1>")
+            html.write(diff_df.transpose().to_html())
+            html.write("\n")
+
+    ch.flush()
+    send_email.send(
+        "Traitement automatique de l'email",
+        output.getvalue(),
+        html,
+        InReplyTo=msg.get("Message-Id"),
+    )
+    logger.removeHandler(ch)
+    output.close()
+
+
+def main():
+    M = imaplib2.IMAP4_SSL(host=os.environ["IMAP_SERVER"], port=993)
+    M.login(os.environ["IMAP_USER"], os.environ["IMAP_PASSWORD"])
+    M.SELECT(readonly=False)
+
+    subject = "[liste-compta-ruche] [BOWEBI] INFBUD53"
+    search = '(UNSEEN SUBJECT "{}")'.format(subject)
+    typ, data = M.SEARCH(None, search)
+    ll = data[0].decode().split()
+
+    bp = email.parser.BytesParser()
+    for num in ll:
+        typ2, data2 = M.FETCH(num, "RFC822")
+        v = data2[0][1]
+        msg = bp.parsebytes(v)
+        report_analysis(msg)
+
+    M.close()
+    M.logout()
+    logger.info("Finished")
+
+
+def extract_bcs(nbcs, df):
+    c = "N°EJ (Bon de commande / Marché / Convention / Subvention...)"
+    df[c] = df[c].fillna(0).astype(int).astype(str)
+    return df[df[c].isin(nbcs)]
+
+
+def get_diff(df_l, df_c):
+    df_l["Ancienne ligne"] = True
+    df_c["Nouvelle ligne"] = True
+    df = df_c.merge(df_l, how="outer")
+    result = df[df["Ancienne ligne"].fillna(False) ^ df["Nouvelle ligne"].fillna(False)]
+
+    del df_l["Ancienne ligne"]
+    del df_c["Nouvelle ligne"]
+    return result
+
+
+def test():
+    year = 2025
+    template = env.get_template("check_emails_for_mte_infbud.html")
+    missing_bcs = [{"id": 67, "NoBDC": "1211", "Montant_engage": 22913.28}]
+    bogus_bc = [{"reference": 1234, "grist_value": 12.34, "chorus_value": 13.42}]
+    html = template.render(
+        ej_count=246,
+        match_count=66,
+        missing_bcs=missing_bcs,
+        year=year,
+        bogus_bc=bogus_bc,
+    )
+    print(html)
+    # send_email.send("test", "GO", html)
+
+
+if __name__ == "__main__":
+    test()

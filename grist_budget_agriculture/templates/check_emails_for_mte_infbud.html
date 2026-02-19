@@ -1,0 +1,21 @@
+<h1>RECAP</h1>
+<p>Il y a {{ ej_count }} engagements juridiques dans l'INFBUD reçue.</p>
+<p>{{ match_count }} ont une correspondance dans Grist.</p>
+
+{% if missing_bcs %}
+<p>Il y a {{ missing_bcs | length }} bons de commande de {{ year }} qui sont dans Grist mais sans correspondance dans l'INFBUD reçue.</p>
+<ul>
+{% for item in missing_bcs %}
+    <li><a href="https://grist.numerique.gouv.fr/o/masaf/9mbWaZNUvym2/Budget/p/122#a1.s628.r{{ item.id }}.c128">BC N°{{ item.NoBDC }} : {{ item.Montant_engage }}</a></li>
+{% endfor %}
+</ul>
+{% endif %}
+
+{% if bogus_bc %}
+<p>Il y a {{ bogus_bc | length}} bons de commande avec un montant incohérent :</p>
+<ul>
+{% for item in bogus_bc %}
+    <li><a href="">BC N°{{ item.reference }} : {{ item.grist_value }} (Grist) != {{ item.chorus_value }} (Chorus)</a></li>
+{% endfor %}
+</ul>
+{% endif %}
