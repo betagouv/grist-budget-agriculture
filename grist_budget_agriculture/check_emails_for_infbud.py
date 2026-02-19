@@ -14,6 +14,13 @@ import pandas as pd
 from grist_budget_agriculture.grist import api
 import grist_budget_agriculture.send_email as send_email
 
+from jinja2 import Environment, PackageLoader, select_autoescape
+
+env = Environment(
+    loader=PackageLoader("grist_budget_agriculture"), autoescape=select_autoescape()
+)
+
+
 dotenv.load_dotenv()
 logger = logging.getLogger(__name__)
 xlsx_re = re.compile(".*INFBUD53.*\.xlsx")
@@ -72,7 +79,14 @@ def process_file(infbud_df):
     clean_should_be_empty_bc_df = should_be_empty_bc_df.rename(
         columns={col_total: "Montant Chorus", "Montant_engage": "Montant Grist"}
     )[["id", "NoBDC", "annee_bc", "Montant Chorus", "Montant Grist"]]
-    return clean_should_be_empty_bc_df
+
+    template = env.get_template("check_emails_for_infbud.html")
+    return template.render(
+        ej_count=ae_df.shape[0],
+        match_count=check_ae_df.shape[0],
+        bogus_bc_count=clean_should_be_empty_bc_df.shape[0],
+        bogus_bc=clean_should_be_empty_bc_df.to_html(),
+    )
 
 
 def report_analysis(num, msg):
@@ -85,23 +99,18 @@ def report_analysis(num, msg):
 
     doc_bytes = process_email(msg)
 
-    html = None
+    html_result = "<p>Bug. empty. check. code. Humans are disappointing.</p>"
     if doc_bytes:
         doc = io.BytesIO(doc_bytes)
         df = pd.read_excel(doc)
 
-        result_df = process_file(df)
-
-        html = io.StringIO()
-        html.write("<h1>RECAP de BC en erreur</h1>")
-        html.write(result_df.to_html())
-        html.write("\n")
+        html_result = process_file(df)
 
     ch.flush()
     send_email.send(
         "Traitement automatique de l'email",
         output.getvalue(),
-        html.getvalue(),
+        html_result,
         InReplyTo=msg.get("Message-Id"),
     )
     logger.removeHandler(ch)
@@ -141,8 +150,8 @@ def test():
         print("Il faut fournir un fichier Excel (.xlsx) d'une INFBUD53")
         return
     df = pd.read_excel(file)
-    result_df = process_file(df)
-    print(result_df)
+    html = process_file(df)
+    print(html)
 
 
 if __name__ == "__main__":

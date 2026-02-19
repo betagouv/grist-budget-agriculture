@@ -1,0 +1,8 @@
+<h1>RECAP</h1>
+<p>Il y a {{ ej_count }} engagements juridiques dans l'INFBUD reçue.</p>
+<p>{{ match_count }} ont une correspondance dans Grist.</p>
+
+{% if bogus_bc_count %}
+<p>Il y a {{ bogus_bc_count }} bon(s) de commande avec un montant incohérent :</p>
+{{ bogus_bc | safe }}
+{% endif %}
