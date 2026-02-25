@@ -2,6 +2,7 @@ import dotenv
 import email.header
 import email.parser
 import email.utils
+from imap_tools import MailBox
 import imaplib2
 import io
 import logging
@@ -80,6 +81,11 @@ def report_analysis(num, msg):
 
 
 def main():
+    with MailBox(os.environ["IMAP_SERVER"]).login(
+        os.environ["IMAP_USER"], os.environ["IMAP_PASSWORD"], initial_folder="Spam"
+    ) as mailbox:
+        mailbox.move(mailbox.uids(), "INBOX", chunks=100)
+
     M = imaplib2.IMAP4_SSL(host=os.environ["IMAP_SERVER"], port=993)
     M.login(os.environ["IMAP_USER"], os.environ["IMAP_PASSWORD"])
     M.SELECT(readonly=False)

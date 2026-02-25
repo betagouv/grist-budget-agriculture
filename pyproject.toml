@@ -11,6 +11,7 @@ dependencies = [
   "flask-cors",
   "grist_api",
   "gunicorn",
+  "imap-tools>=1.11.1",
   "imaplib2",
   "openpyxl",
   "pandas",
