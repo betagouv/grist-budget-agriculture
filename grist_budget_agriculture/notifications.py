@@ -32,13 +32,19 @@ def build_message(notif):
             "table": "Bons_de_commande",
             "notifProp": "Bon_de_commande",
             "subject": bcSubject,
-            "intro": lambda props: f"le bon de commande {props['NoBDC'] or 'TBD'} d'un montant de {locale.currency(props['Montant_AE'])}",
+            "intro": lambda props: (
+                f"le bon de commande {props['NoBDC'] or 'TBD'} d'un montant de {locale.currency(props['Montant_AE'])}"
+            ),
         },
         "Service_fait": {
             "table": "Services_Faits",
             "notifProp": "Service_fait",
-            "subject": lambda props: f"[grist-ruche] SF à suivre pour le BC {props['gristHelper_Display2']} en date du {to_date(props['Date_du_PV'])}",
-            "intro": lambda props: f"le service fait pour le BC {props['gristHelper_Display2']} en date du {to_date(props['Date_du_PV'])}",
+            "subject": lambda props: (
+                f"[grist-ruche] SF à suivre pour le BC {props['gristHelper_Display2']} en date du {to_date(props['Date_du_PV'])}"
+            ),
+            "intro": lambda props: (
+                f"le service fait pour le BC {props['gristHelper_Display2']} en date du {to_date(props['Date_du_PV'])}"
+            ),
         },
     }
 

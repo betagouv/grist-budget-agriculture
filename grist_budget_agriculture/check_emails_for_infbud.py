@@ -33,6 +33,30 @@ def process_email(msg):
     return result
 
 
+def process_file(infbud_df):
+    infbud_df["NoEJ"] = (
+        infbud_df["N°EJ (Bon de commande / Marché / Convention / Subvention...)"]
+        .fillna(0)
+        .astype(int)
+        .astype(str)
+    )
+    infbud_df["NoDP"] = infbud_df["N° DP"].str[13:]
+    infbud_df["id"] = infbud_df.index
+
+    col_total = "Montant TOTAL engagé (b)"
+    ej_rows = [
+        "Bascule des EJ non soldés (EJ années antérieures) (a)",
+        "Montant EJ engagés Année en cours (= b - a)",
+        col_total,
+    ]
+    ae_df = (
+        infbud_df[~infbud_df[col_total].isna()][["NoEJ", *ej_rows]]
+        .groupby("NoEJ")
+        .sum()
+    )
+    return ae_df
+
+
 def report_analysis(num, msg):
     logger = logging.getLogger()
     output = io.StringIO()
@@ -47,26 +71,12 @@ def report_analysis(num, msg):
     if doc_bytes:
         doc = io.BytesIO(doc_bytes)
         df = pd.read_excel(doc)
-        df["NoEJ"] = (
-            df["N°EJ (Bon de commande / Marché / Convention / Subvention...)"]
-            .fillna(0)
-            .astype(int)
-            .astype(str)
-        )
-        df["NoDP"] = df["N° DP"].str[13:]
-        df["id"] = df.index
 
-        col_total = "Montant TOTAL engagé (b)"
-        ej_rows = [
-            "Bascule des EJ non soldés (EJ années antérieures) (a)",
-            "Montant EJ engagés Année en cours (= b - a)",
-            col_total,
-        ]
-        ae_df = df[~df[col_total].isna()][["NoEJ", *ej_rows]].groupby("NoEJ").sum()
+        result_df = process_file(df)
 
         html = io.StringIO()
         html.write("<h1>RECAP</h1>")
-        html.write(ae_df.to_html())
+        html.write(result_df.to_html())
         html.write("\n")
 
     ch.flush()
