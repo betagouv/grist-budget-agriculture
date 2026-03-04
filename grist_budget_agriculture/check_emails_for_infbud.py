@@ -83,7 +83,7 @@ def process_file(infbud_df):
     template = env.get_template("check_emails_for_infbud.html")
     return template.render(
         ej_count=ae_df.shape[0],
-        match_count=check_ae_df.shape[0],
+        match_count=sum(~check_ae_df[col_total].isna()),
         bogus_bc_count=clean_should_be_empty_bc_df.shape[0],
         bogus_bc=clean_should_be_empty_bc_df.to_html(),
     )
