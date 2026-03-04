@@ -11,6 +11,7 @@ import re
 import sys
 import pandas as pd
 
+from grist_budget_agriculture.grist import api
 import grist_budget_agriculture.send_email as send_email
 
 dotenv.load_dotenv()
@@ -35,6 +36,10 @@ def process_email(msg):
 
 
 def process_file(infbud_df):
+    bcs = api.fetch_table("Bons_de_commande")
+    grist_bc_df = pd.DataFrame(bcs)
+    grist_bc_df["annee_bc"] = pd.to_datetime(grist_bc_df["Date_BDC"], unit="s").dt.year
+
     infbud_df["NoEJ"] = (
         infbud_df["N°EJ (Bon de commande / Marché / Convention / Subvention...)"]
         .fillna(0)
@@ -50,12 +55,24 @@ def process_file(infbud_df):
         "Montant EJ engagés Année en cours (= b - a)",
         col_total,
     ]
+    # Somme les lignes relatives à un même EJ
     ae_df = (
         infbud_df[~infbud_df[col_total].isna()][["NoEJ", *ej_rows]]
         .groupby("NoEJ")
         .sum()
     )
-    return ae_df
+
+    check_ae_df = ae_df.merge(
+        grist_bc_df, left_index=True, right_on="NoBDC", how="right"
+    )
+    should_be_empty_bc_df = check_ae_df[
+        (~check_ae_df[col_total].isna())
+        * (check_ae_df[col_total] != check_ae_df["Montant_engage"])
+    ]
+    clean_should_be_empty_bc_df = should_be_empty_bc_df.rename(
+        columns={col_total: "Montant Chorus", "Montant_engage": "Montant Grist"}
+    )[["id", "NoBDC", "annee_bc", "Montant Chorus", "Montant Grist"]]
+    return clean_should_be_empty_bc_df
 
 
 def report_analysis(num, msg):
@@ -76,7 +93,7 @@ def report_analysis(num, msg):
         result_df = process_file(df)
 
         html = io.StringIO()
-        html.write("<h1>RECAP</h1>")
+        html.write("<h1>RECAP de BC en erreur</h1>")
         html.write(result_df.to_html())
         html.write("\n")
 
