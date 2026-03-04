@@ -43,10 +43,6 @@ def process_email(msg):
 
 
 def process_file(infbud_df):
-    bcs = api.fetch_table("Bons_de_commande")
-    grist_bc_df = pd.DataFrame(bcs)
-    grist_bc_df["annee_bc"] = pd.to_datetime(grist_bc_df["Date_BDC"], unit="s").dt.year
-
     infbud_df["NoEJ"] = (
         infbud_df["N°EJ (Bon de commande / Marché / Convention / Subvention...)"]
         .fillna(0)
@@ -57,6 +53,9 @@ def process_file(infbud_df):
     # Correspondance numéro de la ligne sur Excel
     infbud_df["ligne_excel"] = infbud_df.index + 2
 
+    bcs = api.fetch_table("Bons_de_commande")
+    grist_bc_df = pd.DataFrame(bcs)
+    grist_bc_df["annee_bc"] = pd.to_datetime(grist_bc_df["Date_BDC"], unit="s").dt.year
     col_total = "Montant TOTAL engagé (b)"
     ej_rows = [
         "ligne_excel",
@@ -82,12 +81,29 @@ def process_file(infbud_df):
         columns={col_total: "Montant Chorus", "Montant_engage": "Montant Grist"}
     )[["ligne_excel", "NoBDC", "annee_bc", "Montant Chorus", "Montant Grist"]]
 
+    sfs = api.fetch_table("Services_Faits")
+    grist_sf_df = pd.DataFrame(sfs)
+    sf_df = infbud_df[infbud_df["N° SF"] != "#"]
+    interesting_sf_df = sf_df.merge(
+        grist_bc_df[["NoBDC"]], left_on="NoEJ", right_on="NoBDC"
+    )
+    check_sf_df = interesting_sf_df.merge(
+        grist_sf_df, left_on="N° SF", right_on="No_SF", how="left"
+    )
+    missing_sf = check_sf_df[check_sf_df.id.isna()][
+        ["NoEJ", "N° SF", "Montant réceptionné"]
+    ]
+
     template = env.get_template("check_emails_for_infbud.html")
     return template.render(
         ej_count=ae_df.shape[0],
         match_count=sum(~check_ae_df[col_total].isna()),
         bogus_bc_count=clean_should_be_empty_bc_df.shape[0],
         bogus_bc=clean_should_be_empty_bc_df.to_html(index=False),
+        sf_count=sf_df.shape[0],
+        interesting_sf_count=interesting_sf_df.shape[0],
+        missing_sf_count=missing_sf.shape[0],
+        missing_sf=missing_sf.to_html(index=False),
     )
 
 

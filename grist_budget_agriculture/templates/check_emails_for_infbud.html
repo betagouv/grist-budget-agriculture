@@ -6,3 +6,9 @@
 <p>Il y a {{ bogus_bc_count }} bon(s) de commande avec un montant incohérent :</p>
 {{ bogus_bc | safe }}
 {% endif %}
+
+<p>Il y a {{ sf_count }} services faits dans l'INFBUD reçue dont {{ interesting_sf_count }} pour des bons de commande suivis dans Grist.</p>
+{% if missing_sf_count %}
+<p>Il y a {{ missing_sf_count }} services faits manquants dans Grist :</p>
+{{ missing_sf | safe }}
+{% endif %}
