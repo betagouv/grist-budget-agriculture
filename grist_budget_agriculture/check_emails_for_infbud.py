@@ -8,6 +8,7 @@ import io
 import logging
 import os
 import re
+import sys
 import pandas as pd
 
 import grist_budget_agriculture.send_email as send_email
@@ -115,3 +116,17 @@ def main():
     M.close()
     M.logout()
     logger.info("Finished")
+
+
+def test():
+    file = sys.argv[-1]
+    if not file.endswith(".xlsx"):
+        print("Il faut fournir un fichier Excel (.xlsx) d'une INFBUD53")
+        return
+    df = pd.read_excel(file)
+    result_df = process_file(df)
+    print(result_df)
+
+
+if __name__ == "__main__":
+    test()
