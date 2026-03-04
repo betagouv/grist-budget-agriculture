@@ -54,10 +54,12 @@ def process_file(infbud_df):
         .astype(str)
     )
     infbud_df["NoDP"] = infbud_df["N° DP"].str[13:]
-    infbud_df["id"] = infbud_df.index
+    # Correspondance numéro de la ligne sur Excel
+    infbud_df["ligne_excel"] = infbud_df.index + 2
 
     col_total = "Montant TOTAL engagé (b)"
     ej_rows = [
+        "ligne_excel",
         "Bascule des EJ non soldés (EJ années antérieures) (a)",
         "Montant EJ engagés Année en cours (= b - a)",
         col_total,
@@ -78,14 +80,14 @@ def process_file(infbud_df):
     ]
     clean_should_be_empty_bc_df = should_be_empty_bc_df.rename(
         columns={col_total: "Montant Chorus", "Montant_engage": "Montant Grist"}
-    )[["id", "NoBDC", "annee_bc", "Montant Chorus", "Montant Grist"]]
+    )[["ligne_excel", "NoBDC", "annee_bc", "Montant Chorus", "Montant Grist"]]
 
     template = env.get_template("check_emails_for_infbud.html")
     return template.render(
         ej_count=ae_df.shape[0],
         match_count=sum(~check_ae_df[col_total].isna()),
         bogus_bc_count=clean_should_be_empty_bc_df.shape[0],
-        bogus_bc=clean_should_be_empty_bc_df.to_html(),
+        bogus_bc=clean_should_be_empty_bc_df.to_html(index=False),
     )
 
 
