@@ -85,13 +85,25 @@ def process_file(infbud_df):
     grist_sf_df = pd.DataFrame(sfs)
     sf_df = infbud_df[infbud_df["N° SF"] != "#"]
     interesting_sf_df = sf_df.merge(
-        grist_bc_df[["NoBDC"]], left_on="NoEJ", right_on="NoBDC"
+        grist_bc_df[["NoBDC", "id"]], left_on="NoEJ", right_on="NoBDC"
     )
     check_sf_df = interesting_sf_df.merge(
-        grist_sf_df, left_on="N° SF", right_on="No_SF", how="left"
+        grist_sf_df,
+        left_on="N° SF",
+        right_on="No_SF",
+        how="left",
+        suffixes=("_bc", "_sf"),
     )
-    missing_sf = check_sf_df[check_sf_df.id.isna()][
-        ["NoEJ", "N° SF", "Montant réceptionné"]
+    check_sf_df["Lien"] = check_sf_df["id_bc"].apply(
+        lambda v: (
+            '<a href="https://grist.numerique.gouv.fr/o/masaf/9mbWaZNUvym2/Budget/p/122#a1.s628.r{0}.c112">Lien</a>'.format(
+                v
+            )
+        )
+    )
+
+    missing_sf = check_sf_df[check_sf_df.id_sf.isna()][
+        ["NoEJ", "N° SF", "Montant réceptionné", "Lien"]
     ]
 
     template = env.get_template("check_emails_for_infbud.html")
@@ -103,7 +115,7 @@ def process_file(infbud_df):
         sf_count=sf_df.shape[0],
         interesting_sf_count=interesting_sf_df.shape[0],
         missing_sf_count=missing_sf.shape[0],
-        missing_sf=missing_sf.to_html(index=False),
+        missing_sf=missing_sf.to_html(index=False, render_links=True, escape=False),
     )
 
 
