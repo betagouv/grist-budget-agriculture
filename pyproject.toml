@@ -21,6 +21,7 @@ dependencies = [
   "python-dotenv",
   "requests",
   "ruff",
+  "tabulate>=0.10.0",
   "xlsxwriter",
 ]
 requires-python = "==3.11.14"

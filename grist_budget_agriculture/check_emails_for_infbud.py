@@ -42,7 +42,17 @@ def process_email(msg):
     return result
 
 
-def process_file(infbud_df):
+def format_df_to_html(df):
+    return df.to_html(index=False, render_links=True, escape=False)
+
+
+def format_df_to_markdown(df):
+    return df.to_markdown(index=False)
+
+
+def process_file(infbud_df, to_markdown=False):
+    format_df = format_df_to_markdown if to_markdown else format_df_to_html
+
     infbud_df["NoEJ"] = (
         infbud_df["N°EJ (Bon de commande / Marché / Convention / Subvention...)"]
         .fillna(0)
@@ -111,11 +121,11 @@ def process_file(infbud_df):
         ej_count=ae_df.shape[0],
         match_count=sum(~check_ae_df[col_total].isna()),
         bogus_bc_count=clean_should_be_empty_bc_df.shape[0],
-        bogus_bc=clean_should_be_empty_bc_df.to_html(index=False),
+        bogus_bc=format_df(clean_should_be_empty_bc_df),
         sf_count=sf_df.shape[0],
         interesting_sf_count=interesting_sf_df.shape[0],
         missing_sf_count=missing_sf.shape[0],
-        missing_sf=missing_sf.to_html(index=False, render_links=True, escape=False),
+        missing_sf=format_df(missing_sf),
     )
 
 
@@ -180,7 +190,7 @@ def test():
         print("Il faut fournir un fichier Excel (.xlsx) d'une INFBUD53")
         return
     df = pd.read_excel(file)
-    html = process_file(df)
+    html = process_file(df, to_markdown=True)
     print(html)
 
 
