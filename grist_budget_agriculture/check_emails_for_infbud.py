@@ -67,10 +67,11 @@ def process_file(infbud_df, to_markdown=False):
     grist_bc_df = pd.DataFrame(bcs)
     grist_bc_df["annee_bc"] = pd.to_datetime(grist_bc_df["Date_BDC"], unit="s").dt.year
     col_total = "Montant TOTAL engagé (b)"
+    col_engage_annee = "Montant EJ engagés Année en cours (= b - a)"
     ej_rows = [
         "ligne_excel",
         "Bascule des EJ non soldés (EJ années antérieures) (a)",
-        "Montant EJ engagés Année en cours (= b - a)",
+        col_engage_annee,
         col_total,
     ]
     # Somme les lignes relatives à un même EJ
@@ -83,12 +84,16 @@ def process_file(infbud_df, to_markdown=False):
     check_ae_df = ae_df.merge(
         grist_bc_df, left_index=True, right_on="NoBDC", how="right"
     )
-    should_be_empty_bc_df = check_ae_df[
-        (~check_ae_df[col_total].isna())
-        * (check_ae_df[col_total] != check_ae_df["Montant_engage"])
+    year_ae_df = check_ae_df[
+        (~check_ae_df[col_engage_annee].isna()) * (check_ae_df[col_engage_annee] > 0)
+    ]
+    should_be_empty_bc_df = year_ae_df[
+        (~year_ae_df[col_engage_annee].isna())
+        * (year_ae_df[col_engage_annee] > 0)
+        * (year_ae_df[col_engage_annee] != year_ae_df["Montant_engage"])
     ]
     clean_should_be_empty_bc_df = should_be_empty_bc_df.rename(
-        columns={col_total: "Montant Chorus", "Montant_engage": "Montant Grist"}
+        columns={col_engage_annee: "Montant Chorus", "Montant_engage": "Montant Grist"}
     )[["ligne_excel", "NoBDC", "annee_bc", "Montant Chorus", "Montant Grist"]]
 
     sfs = api.fetch_table("Services_Faits")
@@ -119,7 +124,8 @@ def process_file(infbud_df, to_markdown=False):
     template = env.get_template("check_emails_for_infbud.html")
     return template.render(
         ej_count=ae_df.shape[0],
-        match_count=sum(~check_ae_df[col_total].isna()),
+        match_count=sum(~check_ae_df[col_engage_annee].isna()),
+        year_match_count=year_ae_df.shape[0],
         bogus_bc_count=clean_should_be_empty_bc_df.shape[0],
         bogus_bc=format_df(clean_should_be_empty_bc_df),
         sf_count=sf_df.shape[0],
