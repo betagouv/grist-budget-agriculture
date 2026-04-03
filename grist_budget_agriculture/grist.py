@@ -1,6 +1,8 @@
 from dotenv import load_dotenv
 from grist_api import GristDocAPI
 import os
+import pandas as pd
+import pickle
 import requests
 import time
 
@@ -56,3 +58,24 @@ def downloadAttachment(a_id):
     with open(rel_path, "wb") as f:
         f.write(response.content)
     return rel_path
+
+
+def getDataframe(name):
+    records = api.fetch_table(name)
+    return pd.DataFrame(records)
+
+
+def getCachedDataframe(name):
+    with open(".grist-cache", "rb") as file:
+        return pickle.load(file)[name]
+
+
+def cacheDF():
+    table_names = ["Bons_de_commande", "Services_Faits"]
+    results = {table: pd.DataFrame(api.fetch_table(table)) for table in table_names}
+    with open(".grist-cache", "wb") as file:
+        pickle.dump(results, file)
+
+
+if __name__ == "__main__":
+    cacheDF()

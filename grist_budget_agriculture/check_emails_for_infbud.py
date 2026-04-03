@@ -11,7 +11,7 @@ import re
 import sys
 import pandas as pd
 
-from grist_budget_agriculture.grist import api
+from grist_budget_agriculture.grist import getDataframe as getDataframe
 import grist_budget_agriculture.send_email as send_email
 
 from jinja2 import Environment, PackageLoader, select_autoescape
@@ -63,8 +63,7 @@ def process_file(infbud_df, to_markdown=False):
     # Correspondance numéro de la ligne sur Excel
     infbud_df["ligne_excel"] = infbud_df.index + 2
 
-    bcs = api.fetch_table("Bons_de_commande")
-    grist_bc_df = pd.DataFrame(bcs)
+    grist_bc_df = getDataframe("Bons_de_commande")
     grist_bc_df["annee_bc"] = pd.to_datetime(grist_bc_df["Date_BDC"], unit="s").dt.year
     col_total = "Montant TOTAL engagé (b)"
     col_engage_annee = "Montant EJ engagés Année en cours (= b - a)"
@@ -96,8 +95,7 @@ def process_file(infbud_df, to_markdown=False):
         columns={col_engage_annee: "Montant Chorus", "Montant_engage": "Montant Grist"}
     )[["ligne_excel", "NoBDC", "annee_bc", "Montant Chorus", "Montant Grist"]]
 
-    sfs = api.fetch_table("Services_Faits")
-    grist_sf_df = pd.DataFrame(sfs)
+    grist_sf_df = getDataframe("Services_Faits")
     sf_df = infbud_df[infbud_df["N° SF"] != "#"]
     interesting_sf_df = sf_df.merge(
         grist_bc_df[["NoBDC", "id"]], left_on="NoEJ", right_on="NoBDC"
