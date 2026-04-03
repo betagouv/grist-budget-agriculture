@@ -1,7 +1,7 @@
 ```bash
 pre-commit install
 cp .env.local .env
-uv run flask --app app run --host=0.0.0.0 --debug
+uv run flask --app grist_budget_agriculture.app run --host=0.0.0.0 --debug
 ```
 
 Ce dépôt contient des [custom widgets](https://support.getgrist.com/widget-custom/) de Grist pour outiller la gestion budgétaire de la Ruche Numérique.
