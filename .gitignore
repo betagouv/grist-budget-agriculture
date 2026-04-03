@@ -46,3 +46,5 @@ tmp
 
 # python
 *.egg-info
+
+.grist-cache
