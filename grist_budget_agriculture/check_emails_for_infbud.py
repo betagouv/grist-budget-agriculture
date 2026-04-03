@@ -107,13 +107,8 @@ def process_file(infbud_df, to_markdown=False):
         how="left",
         suffixes=("_bc", "_sf"),
     )
-    check_sf_df["Lien"] = check_sf_df["id_bc"].apply(
-        lambda v: (
-            '<a href="https://grist.numerique.gouv.fr/o/masaf/9mbWaZNUvym2/Budget/p/122#a1.s628.r{0}.c112">Lien</a>'.format(
-                v
-            )
-        )
-    )
+    link_template = '<a href="https://grist.numerique.gouv.fr/o/masaf/9mbWaZNUvym2/Budget/p/122#a1.s628.r{0}.c112">Lien</a>'
+    check_sf_df["Lien"] = check_sf_df["id_bc"].apply(lambda v: link_template.format(v))
     missing_sf = check_sf_df[check_sf_df.id_sf.isna()][
         ["NoEJ", "N° SF", "Montant réceptionné", "Lien"]
     ]
@@ -139,13 +134,7 @@ def process_file(infbud_df, to_markdown=False):
         how="left",
         suffixes=("_dp", "_sf"),
     )
-    check_dp_df["Lien"] = check_dp_df["id"].apply(
-        lambda v: (
-            '<a href="https://grist.numerique.gouv.fr/o/masaf/9mbWaZNUvym2/Budget/p/122#a1.s628.r{0}.c112">Lien</a>'.format(
-                v
-            )
-        )
-    )
+    check_dp_df["Lien"] = check_dp_df["id"].apply(lambda v: link_template.format(v))
     bogus_dp = check_dp_df[check_dp_df["Montant_CP"] != check_dp_df[col_paye]][
         ["NoEJ", "NoDP", "Montant_CP", col_facture, col_paye, "Lien"]
     ].rename(
