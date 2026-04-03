@@ -114,10 +114,47 @@ def process_file(infbud_df, to_markdown=False):
             )
         )
     )
-
     missing_sf = check_sf_df[check_sf_df.id_sf.isna()][
         ["NoEJ", "N° SF", "Montant réceptionné", "Lien"]
     ]
+
+    dp_df = infbud_df[infbud_df["NoDP"] != ""]
+    col_facture = "Montant facturé (Fact. validée par le comptable mais non échue)"
+    col_paye = "Montant payé (Virement effectué au fournisseur)"
+
+    # Somme les lignes relatives à un même EJ
+    sum_dp_df = (
+        dp_df[["NoEJ", "NoDP", col_facture, col_paye]]
+        .groupby(["NoEJ", "NoDP"])
+        .sum()
+        .reset_index()
+    )
+    interesting_dp_df = sum_dp_df.merge(
+        grist_bc_df[["NoBDC", "id"]], left_on="NoEJ", right_on="NoBDC"
+    )
+    check_dp_df = interesting_dp_df.merge(
+        check_sf_df[["Montant_CP", "NoBDC", "N_DP_Chorus"]],
+        left_on=["NoEJ", "NoDP"],
+        right_on=["NoBDC", "N_DP_Chorus"],
+        how="left",
+        suffixes=("_dp", "_sf"),
+    )
+    check_dp_df["Lien"] = check_dp_df["id"].apply(
+        lambda v: (
+            '<a href="https://grist.numerique.gouv.fr/o/masaf/9mbWaZNUvym2/Budget/p/122#a1.s628.r{0}.c112">Lien</a>'.format(
+                v
+            )
+        )
+    )
+    bogus_dp = check_dp_df[check_dp_df["Montant_CP"] != check_dp_df[col_paye]][
+        ["NoEJ", "NoDP", "Montant_CP", col_facture, col_paye, "Lien"]
+    ].rename(
+        columns={
+            "Montant_CP": "Montant SF (Grist)",
+            col_facture: "Montant facturé (Chorus)",
+            col_paye: "Montant payé (Chorus)",
+        }
+    )
 
     template = env.get_template("check_emails_for_infbud.html")
     return template.render(
@@ -125,11 +162,15 @@ def process_file(infbud_df, to_markdown=False):
         match_count=sum(~check_ae_df[col_engage_annee].isna()),
         year_match_count=year_ae_df.shape[0],
         bogus_bc_count=clean_should_be_empty_bc_df.shape[0],
-        bogus_bc=format_df(clean_should_be_empty_bc_df),
+        bogus_bc=format_df(clean_should_be_empty_bc_df.sort_values(["NoBDC"])),
         sf_count=sf_df.shape[0],
         interesting_sf_count=interesting_sf_df.shape[0],
         missing_sf_count=missing_sf.shape[0],
-        missing_sf=format_df(missing_sf),
+        missing_sf=format_df(missing_sf.sort_values(["NoEJ", "N° SF"])),
+        dp_count=dp_df.shape[0],
+        interesting_dp_count=check_dp_df.shape[0],
+        bogus_dp_count=bogus_dp.shape[0],
+        bogus_dp=format_df(bogus_dp),
     )
 
 

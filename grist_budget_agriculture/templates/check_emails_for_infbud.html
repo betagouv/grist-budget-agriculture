@@ -12,3 +12,9 @@
 <p>Il y a {{ missing_sf_count }} services faits manquants dans Grist :</p>
 {{ missing_sf | safe }}
 {% endif %}
+
+<p>Il y a {{ dp_count }} demandes de paiement dans l'INFBUD reçue dont {{ interesting_dp_count }} pour des bons de commande suivis dans Grist.</p>
+{% if bogus_dp_count %}
+<p>Il y a {{ bogus_dp_count }} demandes de paiement manquantes ou en erreur dans Grist :</p>
+{{ bogus_dp | safe }}
+{% endif %}
