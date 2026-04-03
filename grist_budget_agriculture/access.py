@@ -19,7 +19,9 @@ def generate_updates():
         if person["access"] == "viewers"
     }
     editorAccesses = [
-        person["email"] for person in accessesToCheck if person["access"] != "viewers"
+        person["email"]
+        for person in accessesToCheck
+        if person["access"] and person["access"] != "viewers"
     ]
 
     people = [person for person in api.fetch_table("Personnes") if len(person.Email)]
