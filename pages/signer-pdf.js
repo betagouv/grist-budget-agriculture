@@ -118,8 +118,9 @@ export default function SignPDFPage() {
       const tableId = await window.grist.getTable().getTableId();
       const fallbackPayload = {
         error,
-        payload,
         attachmentIds,
+        recordId: record.id,
+        propKey: mapping[key],
         tableId,
         tokenInfo,
       };

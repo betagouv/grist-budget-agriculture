@@ -22,6 +22,18 @@ api = GristDocAPI(
 
 def updateAttachmentField(context):
     token = context["tokenInfo"]["token"]
+
+    row_id = context["recordId"]
+    filter_param = f'{{"id":[{row_id}]}}'
+    row_url = f"{context['tokenInfo']['baseUrl']}/tables/{context['tableId']}/records?filter={filter_param}&auth={token}"
+    row_response = requests.get(row_url)
+    if row_response.status_code == 200:
+        row = row_response.json()
+        if context["propKey"] not in row["records"][0]["fields"]:
+            return [], None
+    else:
+        return [], None
+
     check_responses = []
     for id_to_check in context["attachmentIds"]:
         url = (
@@ -29,9 +41,17 @@ def updateAttachmentField(context):
         )
         check_responses.append(requests.get(url))
         time.sleep(0.1)
-
     if all([c.status_code == 200 for c in check_responses]):
-        payload = {"records": context["payload"]}
+        payload = {
+            "records": [
+                {
+                    "id": context["recordId"],
+                    "fields": {
+                        context["propKey"]: ["L", *context["attachmentIds"]],
+                    },
+                },
+            ]
+        }
         response = api.call(f"tables/{context['tableId']}/records", payload, "PATCH")
     else:
         response = None
