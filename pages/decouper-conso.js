@@ -1,3 +1,11 @@
+/*
+Ce composant prend en entrée une conso mensuelle qui fait surconsommer un BC
+
+Il permet de subdiviser la conso mensuelle en deux
+* une première partie ajustée pour solder le BC, le consommer entièrement sans dépassement
+* une seconde partie qui correspond au reliquat et à associer à un nouveau BC
+
+*/
 import { useCallback, useEffect, useRef, useState } from "react";
 import { HotTable } from "@handsontable/react-wrapper";
 import { registerAllModules } from "handsontable/registry";

@@ -1,3 +1,11 @@
+/*
+Des explorations de prévisionnel macro ont été réalisées.
+
+Ce composant permettait de dupliquer un prévisionnel (le plus récent dans les usages imaginés)
+pour l'ajuster à la nouvelle réalité.
+
+Si c'était à refaire, action button.
+*/
 import { useState, useEffect, useRef } from "react";
 
 export default function DuplicatePage() {

@@ -1,3 +1,16 @@
+/*
+Ce composant est celui avec le plus de potentiel (mais aussi la plus complexe)
+Il s'agit de générer la vue de prévisionnel naturelle pour les personnes avec
+* les personnes en lignes
+* les mois en colonnes
+
+à la place d'une longue liste de consommations mensuelles.
+
+Cette vue là peut-être considéréé comme une pivot table de la liste des conso.
+
+
+
+*/
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { HotTable } from "@handsontable/react-wrapper";

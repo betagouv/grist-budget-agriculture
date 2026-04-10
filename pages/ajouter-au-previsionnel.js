@@ -1,3 +1,15 @@
+/*
+
+Ce custom widget a été pour générer une nouveau ligne de Conso_mensuelle pour le contrat_Freelance sélectionné.
+En effet, la vue prévisionnel (personnes en lignes, mois en colonnes) repose sur les conso_mensuelles,
+il faut qu'une personne apparait dans au moins une conso_mensuelle pour avoir sa ligne dans la vue prévisionnel.
+
+Si c'était à refaire, je ferais plutôt un action button.
+
+Si c'était à refaire 2, ie la vue prévisionnel, pas juste ce custom widget,
+je ferais plutôt une vue prévisionnelle liée à un produit et
+avoir toute la complexité pour afficher ce qu'il faut dans ce gros custom widget.
+*/
 import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import jsonwebtoken from "jsonwebtoken";

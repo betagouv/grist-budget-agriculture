@@ -1,3 +1,14 @@
+/*
+Ce composant est une expérimentation autour de l'extraction des infos contenues
+dans les fichiers XML récupérés auprès de Chordée historique, ie en Jira
+
+Une interface pourrait être envisagée avec Chordée NG mais sans le bénéfice de
+la capitalisation possible d'un système tel que Jira (en effet, selon nos infos
+Chordée NG a été recodée depuis zéro et n'a donc probablement pas les API
+[encore?] dispo pour faire des interconnexions)
+
+Ce composant a été largement dépassé par la récupération des données depuis Chorus.
+*/
 import { useCallback, useEffect, useRef, useState } from "react";
 import { HotTable } from "@handsontable/react-wrapper";
 import { registerAllModules } from "handsontable/registry";

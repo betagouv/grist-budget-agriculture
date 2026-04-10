@@ -1,3 +1,6 @@
+/*
+Ce composant a été un outil de migration et d'historisation des financements.
+*/
 import { useState, useEffect, useRef } from "react";
 
 const name = "Name";

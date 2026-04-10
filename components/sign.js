@@ -1,3 +1,6 @@
+/*
+Ce composant a été créé pour permettre la réalisation de tests manuels sans la couche Grist qui ajoute de la complexité.
+*/
 import { useEffect, useState, useCallback } from "react";
 import { PDFDocument, StandardFonts } from "pdf-lib";
 import fontkit from "@pdf-lib/fontkit";
