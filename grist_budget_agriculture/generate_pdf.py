@@ -1,3 +1,12 @@
+"""
+Cette fonction a été expérimentée pour générer des documents PDF à partir de templates ODT
+L'idée était de pouvoir générer automatiquement des PV de SF.
+
+Note: Cela a nécessité l'intégration de Libre Office dans l'image Scalingo
+cf git log .buildpacks
+
+"""
+
 from dotenv import load_dotenv
 import os
 import sys

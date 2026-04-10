@@ -1,4 +1,20 @@
 "use client";
+/*
+Ce composant a permis d'expérimenter le remplissage des devis, DA, PV de SF et SF directement dans Grist.
+Avec la date, le nom, rôle et la signature ajoutables depuis une interface.
+
+De la complexité provient d'une limitation actuelle de Grist relative à l'association
+d'une nouvelle pièce jointe et d'une ligne dans Grist
+
+cf.
+https://github.com/gristlabs/grist-core/pull/1614
+https://github.com/gristlabs/grist-core/pull/1594
+https://github.com/gristlabs/grist-core/pull/1512
+https://github.com/gristlabs/grist-core/issues/1853
+et
+@application.route(f"{subdomain}/grist-proxy/attachment", methods=["POST"])
+
+*/
 import { useEffect, useState } from "react";
 
 import SignPDFComponent from "../components/sign.js";

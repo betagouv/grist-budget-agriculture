@@ -1,4 +1,10 @@
 /*
+Cette vue a permis des expérimentations sur les données récupérées par email auprès de Chorus.
+
+Elle a été dépassé par l'automatisation d'un email en réponse à l'email avec les données.
+L'email envoyé contient un récap pour les BC, les SF et les DP.
+
+cf grist_budget_agriculture/check_emails_for_infbud.py
 
 */
 import { useEffect, useState } from "react";

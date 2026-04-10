@@ -1,3 +1,9 @@
+"""
+Ces fonctions ont permis les expérimentations sur les données Chorus extraites manuellement par Fanny
+
+Ça a été dépassé par grist_budget_agriculture/check_emails_for_infbud.py
+"""
+
 import os
 import pandas as pd
 import requests

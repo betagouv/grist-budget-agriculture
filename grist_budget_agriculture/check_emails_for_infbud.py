@@ -1,3 +1,11 @@
+"""
+Ces fonctions permettent la génération d'un rapport de correspondance entre
+* les infos d'INFBUD reçues par emails
+* les infos dans Grist
+
+Une vérification de correspondance est faite pour les BC, les SF et les DP.
+"""
+
 import dotenv
 import email.header
 import email.parser

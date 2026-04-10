@@ -1,3 +1,14 @@
+"""
+Ces fonctions permettent
+* l'extraction d'un BC dans un email reçu de l'AIFE
+* la recherche d'une ligne dans le tableu des BC sur Grist
+* l'ajout, dans grist, en cas de correspondance
+    * du PDF
+    * de la date
+    * du numéro de BC
+* la mise à jour du statut du BC à "3. BDC reçu"
+"""
+
 import datetime
 import dotenv
 import email.header

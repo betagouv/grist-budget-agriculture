@@ -1,4 +1,9 @@
 "use client";
+/*
+Ce composant permettait
+* de mettre à jour la colonne Personnes_en_charge des BC et de SF
+* de notifier les personnes nouvellement indiquées comme en charge
+*/
 import { useCallback, useEffect, useRef, useState, StrictMode } from "react";
 import { useSearchParams } from "next/navigation";
 

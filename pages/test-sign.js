@@ -1,3 +1,6 @@
+/*
+Page d'expérimentation du widget de signature en ligne hors Grist
+*/
 import { useEffect, useState } from "react";
 
 import SignPDFComponent from "../components/sign.js";

@@ -1,3 +1,7 @@
+"""
+Ces fonctions permet l'envoi d'emails, plus au moins formatés
+"""
+
 from dotenv import load_dotenv
 import os
 import re

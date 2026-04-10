@@ -1,3 +1,8 @@
+"""
+Ces fonctions font le lien avec l'API de Grist
+En particulier, le contournement du bug lié aux pièces jointes.
+"""
+
 from dotenv import load_dotenv
 from grist_api import GristDocAPI
 import os

@@ -1,3 +1,10 @@
+"""
+Ces fonctions ont été utilisées pour l'analyse et la comparaison des INFBUD
+pour mettre en évidence les changements et donc les nouvelles informations
+et des infos avec Grist pour mettre en évidence les écarts
+"""
+
+
 def comment(e, group, ci):
     montant_type = e[ci["Type montant"]]
     montant_ligne = e[ci["Montant Chorus"]]

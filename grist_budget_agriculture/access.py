@@ -1,3 +1,8 @@
+"""
+Ces fonctions permet de régulariser les accès au document grist
+sur la base des infos dans la table Personne
+"""
+
 from grist_budget_agriculture.grist import api
 from pprint import pprint
 import grist_budget_agriculture.send_email as send_email

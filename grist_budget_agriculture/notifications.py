@@ -1,3 +1,7 @@
+"""
+Ces fonctions permettent l'envoi des notifications d'attribution des BC et SF
+"""
+
 import datetime
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
